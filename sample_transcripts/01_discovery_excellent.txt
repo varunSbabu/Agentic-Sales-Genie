@@ -1,0 +1,20 @@
+Rep: Hi Marcus, thanks for making time. Before I get into anything, can you walk me through how your customer support team is set up today?
+Prospect: Sure. We have 12 support agents split across three time zones. We use Zendesk for tickets and Slack for internal escalations. Volume has roughly doubled in the last eight months as we've grown from 400 to 1,100 customers.
+Rep: That's a fast ramp. What's the biggest headache with that setup right now?
+Prospect: Our first-response time has slipped from 4 minutes to 14 minutes. That's directly correlated with churn — we're seeing customers cancel within 30 days when their first ticket takes over 10 minutes to acknowledge.
+Rep: Have you been able to quantify what that churn costs the business?
+Prospect: Yes. Each churned customer represents about $8,400 in lost ARR. We're losing roughly 18 customers per quarter now versus 6 a year ago. So call it $100k in lost ARR per quarter.
+Rep: That's material. What have you tried to solve it already?
+Prospect: We added two junior agents in Q2 but hiring is slow. We also tried an AI triage tool but the accuracy was terrible on our niche vocabulary.
+Rep: What made the accuracy poor specifically?
+Prospect: It couldn't distinguish between billing disputes and refund requests — those need very different handling paths. It routed 40% of them to the wrong queue.
+Rep: Got it. What's your timeline for solving this?
+Prospect: We have a board meeting in October and I need to show first-response back under 5 minutes. So a decision by end of August, implementation in September.
+Rep: Who else is involved in the decision?
+Prospect: Me as owner, our VP of CX for budget approval, and our head of engineering for integration signoff. If procurement gets involved it adds two weeks.
+Rep: What would success look like ninety days after rollout?
+Prospect: First-response under 5 minutes, no more than 10% routing errors, and no additional headcount required.
+Rep: Marcus, based on the routing accuracy problem, the October deadline, and the three-stakeholder decision path, I'd love to put together a tailored session covering our domain-specific classifier and walk your head of engineering through the Zendesk integration. Does Thursday next week at 3pm work?
+Prospect: Thursday at 3pm works. Can you have someone technical on the call? My engineer will want to grill you on latency.
+Rep: Absolutely — I'll bring our solution architect. I'll also send over two case studies tonight from customers who cut first-response by 60% so you have something concrete for your VP.
+Prospect: Perfect. Talk Thursday.

@@ -1,0 +1,14 @@
+Rep: Hi Priya, thanks for hopping on. I know you saw the demo last week — where's your head at?
+Prospect: Honestly, I'm interested but I've got concerns.
+Rep: Great, let's talk through them. What's top of the list?
+Prospect: Price. $60k a year is 3x what we're paying our current vendor.
+Rep: I hear you — cost is a real factor. You mentioned last week that your current vendor was missing the multi-language support that's blocking your Europe expansion. Given that Europe accounts for what you said was $2M in projected new revenue, how do you weigh the $40k gap against that upside?
+Prospect: Fair. But there's a second concern — security. We need SOC 2 Type II.
+Rep: We're SOC 2 Type II certified — I can send you the report today. We're also GDPR-compliant and ISO 27001.
+Prospect: Okay that's good. Third concern — implementation time. Our team is stretched thin and we can't run another six-month project.
+Rep: Understood. Our median implementation is 4-6 weeks with a dedicated CSM. Do you want me to loop in a reference customer who's your size and can speak to that timeline?
+Prospect: Sure that'd help. Look, honestly, the biggest issue is that my CEO wants us to standardize on Salesforce for everything. I'm not sure I can push a non-Salesforce tool through him.
+Rep: Yeah, that's a real dynamic. Two thoughts — one, we have a native Salesforce app that our joint customers use daily. Two, would it help if I put together a one-pager specifically for your CEO showing the ROI math versus building on Salesforce Marketing Cloud?
+Prospect: Maybe. Let me talk to him next week and see what he thinks. I'll reach out after.
+Rep: Sounds good. I'll send the SOC 2 report today and the CEO one-pager by Friday so you have it before your meeting.
+Prospect: Great. Thanks.

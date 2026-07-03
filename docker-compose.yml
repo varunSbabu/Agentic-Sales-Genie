@@ -1,0 +1,74 @@
+# Sales Genie — Supabase is the database, so no local postgres service is defined.
+# Set DATABASE_URL / DATABASE_URL_SYNC in .env to your Supabase project before running.
+
+services:
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  backend:
+    build: .
+    image: sales-genie-backend:latest
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "8000:8000"
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./chroma_db:/app/chroma_db
+      - ./backend:/app/backend
+      - hf_cache:/root/.cache/huggingface
+    command: ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+
+  celery_worker:
+    image: sales-genie-backend:latest
+    restart: unless-stopped
+    env_file: .env
+    depends_on:
+      redis:
+        condition: service_healthy
+      backend:
+        condition: service_started
+    volumes:
+      - ./chroma_db:/app/chroma_db
+      - ./backend:/app/backend
+    command: ["celery", "-A", "backend.tasks.celery_app", "worker", "--loglevel=info", "--concurrency=2"]
+
+  celery_beat:
+    image: sales-genie-backend:latest
+    restart: unless-stopped
+    env_file: .env
+    depends_on:
+      redis:
+        condition: service_healthy
+      backend:
+        condition: service_started
+    volumes:
+      - ./backend:/app/backend
+    command: ["celery", "-A", "backend.tasks.celery_app", "beat", "--loglevel=info"]
+
+  flower:
+    image: sales-genie-backend:latest
+    restart: unless-stopped
+    env_file: .env
+    depends_on:
+      redis:
+        condition: service_healthy
+    ports:
+      - "5555:5555"
+    command: ["celery", "-A", "backend.tasks.celery_app", "flower", "--port=5555"]
+
+volumes:
+  redis_data:
+  hf_cache:

@@ -1,0 +1,96 @@
+DISCOVERY METHODOLOGIES REFERENCE v1.0
+=========================================
+
+The following discovery frameworks are accepted in the scoring of
+Dimension 1 (Discovery Quality). Rep may use any one; the dimension scores
+based on how completely the chosen framework's elements were addressed.
+
+This document is REFERENCE MATERIAL — its contents are signals for what
+the rep covered, not a script for the rep. Do not quote text from this
+document as if it came from the transcript.
+
+
+MEDDIC (B2B enterprise)
+=======================
+Six elements:
+
+- METRICS: quantified business impact ($ saved/earned, % efficiency)
+- ECONOMIC BUYER: identified decision-maker with budget authority
+- DECISION CRITERIA: explicit list of what the prospect will evaluate on
+- DECISION PROCESS: timeline + stages + signers
+- IDENTIFY PAIN: specific business pain articulated
+- CHAMPION: an internal advocate identified
+
+A complete MEDDIC discovery covers all 6. Score 5 if all 6 surfaced.
+Score lower proportionally.
+
+
+SPICED (modern B2B)
+====================
+Five elements:
+
+- SITUATION: current state of the prospect's process or tooling
+- PAIN: what specifically isn't working
+- IMPACT: cost of leaving it unsolved (financial or operational)
+- CRITICAL EVENT: forcing function or deadline driving urgency
+- DECISION: who decides and how
+
+SPICED is often preferred for SaaS sales because it surfaces urgency
+explicitly. Score 5 if all 5 are clearly addressed in the call.
+
+
+BANT (classic, B2B or B2C)
+===========================
+Four elements:
+
+- BUDGET: confirmed budget availability or budgeting process
+- AUTHORITY: decision-maker identified
+- NEED: clear need or pain articulated
+- TIMELINE: specific date or window for purchase decision
+
+BANT is the minimum bar — useful for qualification but not deep
+discovery. A BANT-only conversation rarely scores above 3 on Dimension 1
+because it stops at qualification rather than exploring impact.
+
+
+GAP-SELLING (impact-focused)
+=============================
+Three elements:
+
+- CURRENT STATE: what the prospect's process / outcome looks like today
+- FUTURE STATE: where they want to be
+- IMPACT GAP: the cost (financial or other) of the difference
+
+This framework is concise but effective. Score 5 if all three are
+discussed and the impact gap is quantified.
+
+
+CONSUMER (B2C) DISCOVERY
+=========================
+B2C calls (like customer-service, retail, inbound order) typically don't
+need deep discovery because the customer self-discloses need in their
+opening line. Apply a relaxed rubric:
+
+  Score 5: Rep confirmed the customer's stated need and verified context
+    (which product, when purchased, current state).
+  Score 4: Rep confirmed need but missed context verification.
+  Score 3: Rep proceeded without verifying customer's exact situation.
+  Score 2: Rep made assumptions and got them wrong.
+  Score 1: Rep ignored customer's stated need.
+
+Talk-ratio expectations are also relaxed for B2C — rep often appropriately
+talks 60–75% of the time when delivering information.
+
+
+SCORING NOTE: METHODOLOGY DETECTION
+====================================
+You do NOT need to identify which methodology the rep used. Score based
+on the OUTCOME — how many discovery elements were uncovered from
+whichever framework applies to the call type.
+
+For B2B discovery calls, prefer MEDDIC or SPICED as the scoring lens.
+For B2C, use the relaxed consumer rubric above.
+
+Discovery in commercial / closing calls is OPTIONAL — assume it was done
+in earlier stages and score the dimension at 3 by default unless the
+transcript explicitly references prior discovery.

@@ -1,0 +1,196 @@
+SCORING CALIBRATION ANCHORS v1.0
+====================================
+
+Purpose: reduce variance between scoring runs by anchoring each dimension's
+1/3/5 levels to concrete, observable behavior. The agent should compare the
+transcript against these anchors and only choose a score for which the call
+matches the anchor's REQUIRED OBSERVATIONS.
+
+These anchors describe REQUIRED OBSERVATIONS, not example phrases. Do NOT
+quote any text from this document as evidence — every evidence quote must
+come from the actual call transcript.
+
+
+DIMENSION 1 — DISCOVERY QUALITY
+================================
+
+Score 1/5  (POOR)
+  REQUIRED OBSERVATIONS:
+    - Zero open-ended questions about the prospect's current state
+    - No pain identified or pain stated only by prospect (not probed by rep)
+    - Demo, pricing, or pitch begins within the first 2 rep turns
+  EXAMPLES OF 1/5 BEHAVIOR (not phrases — patterns):
+    - Rep moves immediately to product features
+    - Rep asks only logistics questions (name, account number)
+    - Rep ignores pain when prospect mentions it
+
+Score 3/5  (ADEQUATE)
+  REQUIRED OBSERVATIONS:
+    - 2-4 open-ended discovery questions present
+    - Pain identified and acknowledged by rep
+    - No quantification of pain (no $, %, hours, headcount, etc.)
+    - No timeline or decision-process question
+
+Score 5/5  (EXCELLENT)
+  REQUIRED OBSERVATIONS:
+    - 5+ open-ended questions
+    - At least one quantified pain statement from prospect ($ / % / hours)
+    - Timeline question asked AND answered
+    - Decision-process question asked (who else, how decided)
+    - Optionally: prior-solutions question, success-criteria question
+
+Score 2 or 4: interpolate. A call that meets MOST of the next-higher anchor's
+required observations rounds UP. Otherwise rounds DOWN.
+
+
+DIMENSION 2 — ACTIVE LISTENING
+================================
+
+Score 1/5  (POOR)
+  REQUIRED OBSERVATIONS:
+    - Rep talks over the prospect at least once
+    - Rep ignores an explicit objection or concern
+    - Rep pivots away from prospect's stated pain to a different topic
+
+Score 3/5  (ADEQUATE)
+  REQUIRED OBSERVATIONS:
+    - Responses are relevant to what the prospect said
+    - No paraphrasing or summarising back of prospect statements
+    - No clarifying follow-ups on prospect statements
+    - No explicit acknowledgment when prospect raises a concern
+
+Score 5/5  (EXCELLENT)
+  REQUIRED OBSERVATIONS:
+    - Rep paraphrases prospect statements at least twice ("So what I'm hearing is...")
+    - Rep asks clarifying follow-ups on prospect-introduced topics
+    - When prospect raises an objection, rep explicitly names it before responding
+    - Rep never talks over the prospect
+
+
+DIMENSION 3 — VALUE ARTICULATION
+================================
+
+Score 1/5  (POOR)
+  REQUIRED OBSERVATIONS:
+    - Pure feature-dump with no connection to any prospect quote
+    - Generic claims ("we're the leader", "we're trusted by Fortune 500")
+    - No mention of the prospect's specific pain when pitching
+
+Score 3/5  (ADEQUATE)
+  REQUIRED OBSERVATIONS:
+    - Some benefits mentioned with vague connection to prospect context
+    - 50/50 mix of pain-linked and generic claims
+    - Pain references are paraphrased rather than directly quoted
+
+Score 5/5  (EXCELLENT)
+  REQUIRED OBSERVATIONS:
+    - Every benefit named is tied to a SPECIFIC prospect quote earlier in the call
+    - At least 3 explicit (prospect-pain → rep-benefit) linkages
+    - When prospect raised a concern, rep used a value tie-in rather than discount
+
+
+DIMENSION 4 — NEXT STEP CLARITY
+================================
+
+Score 1/5  (POOR)
+  REQUIRED OBSERVATIONS:
+    - Call ends with no next step proposed, OR
+    - Rep says "I'll follow up" with no prospect commitment
+
+Score 3/5  (ADEQUATE)
+  REQUIRED OBSERVATIONS:
+    - A next step is proposed
+    - Prospect agrees in principle
+    - No specific date, time, attendees, or agenda
+
+Score 5/5  (EXCELLENT)
+  REQUIRED OBSERVATIONS:
+    - Specific date AND time set (e.g. "Thursday at 2pm")
+    - Format identified (call, demo, written deliverable)
+    - Named attendees if multiple parties
+    - Agenda or expected output stated
+    - Prospect VERBALLY confirms ("Yes, that works", "I'll send the invite", etc.)
+
+
+DIMENSION 5 — TALK RATIO DISCIPLINE
+================================
+
+Use the talk_ratio_rep metric (provided in call metadata) directly:
+
+For DISCOVERY / CHECK-IN calls:
+  Score 5/5: Rep talked 30-45% of total time
+  Score 4/5: Rep talked 45-55%
+  Score 3/5: Rep talked 55-65%
+  Score 2/5: Rep talked 65-75%
+  Score 1/5: Rep talked more than 75%
+
+For DEMO / SOLUTION REVIEW calls:
+  Score 5/5: Rep talked 50-60%
+  Score 4/5: Rep talked 60-70%
+  Score 3/5: Rep talked 70-80%
+  Score 2/5: Rep talked 80-90%
+  Score 1/5: Rep talked more than 90%
+
+For COMMERCIAL / NEGOTIATION calls:
+  Score 3/5 by default unless an extreme pattern is observed.
+
+For SERVICE / INBOUND calls:
+  Score 4/5 if rep talked 50-75% (information delivery is expected).
+  Score 3/5 if rep talked >75% without checking customer understanding.
+  Score 5/5 if rep balanced delivery with customer verification (paraphrased
+    back, asked "does that work for you?").
+
+
+OVERALL SCORE BANDS — CALIBRATION
+====================================
+
+EXCELLENT (4.0 - 5.0)
+  - Hit 4+ of 5 dimensions at level 4-5
+  - Worth using as a coaching example
+  - Deal advanced with concrete next step
+  - No major loss-risk flags
+
+SOLID (3.0 - 3.9)
+  - Hit 3 of 5 dimensions at level 4-5
+  - Some clear improvement opportunities but call was net-positive
+  - Deal advanced with adequate next step
+  - At most 1-2 loss-risk flags
+
+MIXED (2.5 - 2.9)
+  - Mix of strong and weak dimensions
+  - Deal may stall without specific rework
+  - 2+ loss-risk flags OR weak next step
+
+INTERVENTION REQUIRED (Below 2.5)
+  - Multiple dimensions at level 1-2
+  - Deal likely to stall or churn
+  - Significant loss-risk profile
+  - Manager should listen and coach within 48 hours
+
+
+CONSISTENCY RULES
+====================================
+When uncertain between two scores (e.g. 3 vs 4):
+
+1. List the REQUIRED OBSERVATIONS for both scores
+2. Count how many are observed in THIS transcript
+3. Pick the score where MORE required observations are met
+4. If exactly equal, round DOWN — conservative scoring is better than
+   over-scoring
+
+When a dimension's score would be 0/5 (no signal at all):
+   - For Discovery calls: this is valid for non-discovery dimensions if the
+     call hasn't progressed there yet
+   - For Demo / later calls: 0/5 is rare; use 1/5 if the rep neglected the
+     dimension entirely
+
+
+EVIDENCE REQUIREMENT REMINDER
+====================================
+Every score must cite at least one evidence quote from the actual call
+transcript. If no evidence exists in the transcript for a dimension, score
+that dimension conservatively (1 or 2) — do not invent evidence.
+
+The anchors in this document describe BEHAVIORS to look for in the
+transcript, not phrases to copy. Quoting from this document into the
+evidence field is forbidden.

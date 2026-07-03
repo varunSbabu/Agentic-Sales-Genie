@@ -1,0 +1,14 @@
+Rep: Hi team. Before I share my screen, quick recap of what you told me last time so I show you what you need — you're evaluating for the sales enablement side, main pain is content velocity, and you're comparing us against Highspot and Seismic. Is that still accurate?
+Prospect: Yes that's exactly right. We're leaning toward Highspot honestly but want to see what you have.
+Rep: Understood — I'll focus on what's different from Highspot. First, live authoring. You mentioned creating three new pitch decks a week takes your team 12 hours. Here's how we cut that to under two hours...
+Prospect: Wait — Highspot's demo showed similar authoring. What makes yours different?
+Rep: Fair question. The difference is our live-collaboration model — multiple sales reps can edit the same deck simultaneously, like Google Docs. Highspot serialises edits. Let me show you.
+Prospect: Oh that IS different. How does version control work?
+Rep: Every save is a checkpoint you can roll back. Let me demo that too. Does this address your content velocity concern?
+Prospect: Yes, and the collaboration piece is genuinely something Highspot doesn't do. What about analytics — Seismic showed us a really rich dashboard.
+Rep: Analytics is where we're weakest of the three. We have solid tracking but our dashboards aren't as configurable as Seismic. I'd rate us at 80% of Seismic's depth for 60% of the price. If dashboard configurability is your #1 criterion, Seismic is likely a better fit.
+Prospect: Interesting. I appreciate the honesty. Where do we go from here?
+Rep: Two options — I can either put together a pricing proposal with the numbers we discussed, or if you'd like, I can arrange a call between your enablement lead and one of our reference customers who switched from Highspot last year. Which is more useful?
+Prospect: The reference call actually. My VP wants proof from someone who made the switch.
+Rep: Perfect. I'll reach out to a reference and coordinate. Aiming for next week — I'll send options by end of tomorrow.
+Prospect: Thanks. Sounds good.

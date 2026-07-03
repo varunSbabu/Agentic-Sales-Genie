@@ -1,0 +1,239 @@
+SALES CALL SCORING FRAMEWORK v1.0
+==================================
+
+PURPOSE
+-------
+This framework is applied by the Sales Genie agent to score recorded sales
+calls. The agent must use ONLY the rubrics below — it must not invent new
+criteria or rely on generic sales knowledge. Every score must be backed by
+direct evidence quoted from the transcript.
+
+
+CALL TYPE CLASSIFICATION (apply this BEFORE scoring)
+----------------------------------------------------
+Identify the call's primary intent. Use the dominant focus, not the opening
+small talk.
+
+- DISCOVERY: Rep is exploring fit. Conversation is centered on the prospect's
+  current state, problems, and decision context. The prospect's company,
+  team, and processes are being learned. No product demo or pricing.
+
+- DEMO / SOLUTION REVIEW: Rep is walking through the product with the
+  prospect's stated pain in mind. Value is being articulated against a
+  defined problem. Discovery may continue lightly.
+
+- TECHNICAL VALIDATION: Implementation details, security, integrations,
+  infrastructure, or compliance are the dominant topics. Often involves an
+  engineer, architect, or InfoSec stakeholder on the prospect side.
+
+- COMMERCIAL / NEGOTIATION: Pricing, terms, contracting, or procurement is
+  the dominant topic. Quote has been sent or is being negotiated.
+
+- CLOSING: Final commitments, ROI confirmation, executive sign-off, signed
+  agreement walkthrough.
+
+- FOLLOW-UP / CHECK-IN: Between major milestones. No new artifact being
+  discussed in depth; goal is to maintain momentum or unblock.
+
+
+DEAL STAGING FRAMEWORK
+----------------------
+After classifying the call, infer which stage the deal sits in BEFORE the
+call. Then label whether the call ADVANCED, STALLED, or CREATED RISK relative
+to that stage.
+
+- Stage 0 — UNQUALIFIED: No fit confirmed; no pain identified.
+- Stage 1 — QUALIFIED OPPORTUNITY: Pain confirmed, decision criteria
+  emerging, budget unconfirmed.
+- Stage 2 — SOLUTION REVIEW: Product fit demonstrated, multiple stakeholders
+  introduced, decision criteria explicit.
+- Stage 3 — TECHNICAL VALIDATION: POC, security review, or integration test
+  in progress.
+- Stage 4 — COMMERCIAL NEGOTIATION: Quote sent, redlining contract,
+  procurement engaged.
+- Stage 5 — CLOSED-WON or CLOSED-LOST.
+
+A call ADVANCED the stage if a concrete artifact, meeting, or commitment was
+agreed that moves the deal toward the next stage.
+A call STALLED if no forward motion was committed.
+A call CREATED RISK if new blockers emerged (budget gap, lost champion,
+competitive replacement, fit issue).
+
+
+SCORING DIMENSIONS (5 dimensions, each scored 1–5)
+==================================================
+
+DIMENSION 1: DISCOVERY QUALITY  (weight 25%)
+--------------------------------------------
+The depth and rigor with which the rep explored the prospect's situation.
+
+A complete discovery covers SEVEN elements:
+  1. Current state — how things work today
+  2. Pain — what is specifically broken or limiting
+  3. Quantified impact — dollars, hours, headcount, or percentage
+  4. Timeline — when is this expected to be solved by
+  5. Prior solutions — what they have tried already
+  6. Decision criteria — what makes one solution better than another
+  7. Decision process — who decides, in what order, by when
+
+Scoring:
+- 5 (Excellent): All 7 elements explored, with 7+ open-ended questions and at
+  least one explicit quantification (numeric impact).
+- 4 (Strong): 5–6 elements covered; quantification present but partial.
+- 3 (Adequate): 3–4 elements covered; pain identified but impact not
+  quantified.
+- 2 (Weak): 1–2 elements covered; surface-level questions only.
+- 1 (Poor): Rep launched into demo or pitch without discovery.
+
+Evidence required: direct quotes of the open-ended questions asked, plus the
+prospect quotes that did or did not quantify pain.
+
+
+DIMENSION 2: ACTIVE LISTENING  (weight 15%)
+-------------------------------------------
+Whether the rep engaged with what the prospect said vs. waiting for their
+turn to talk.
+
+Markers:
+- Paraphrasing the prospect's words ("So what I'm hearing is...")
+- Clarifying follow-ups on prospect statements
+- Acknowledging objections explicitly before responding
+- Not talking over the prospect
+- Reflecting emotion when prospect expresses frustration or urgency
+
+Scoring:
+- 5: Rep paraphrased 3+ times; asked clarifying follow-ups; never talked
+  over the prospect; acknowledged at least one objection explicitly.
+- 4: 1–2 paraphrases; mostly responsive; minor talking-over.
+- 3: Relevant responses but no paraphrasing or reflection.
+- 2: Some non-sequiturs, missed objections, or interruptions.
+- 1: Rep ignored objections, talked over prospect repeatedly, or pivoted
+  away from prospect's stated concern.
+
+Evidence required: paraphrase quotes (or absence thereof) and any explicit
+prospect concern that was ignored or addressed.
+
+
+DIMENSION 3: VALUE ARTICULATION  (weight 20%)
+---------------------------------------------
+The rep's ability to tie product capabilities to the prospect's specific
+stated pain — not a generic feature pitch.
+
+Scoring:
+- 5: Every benefit named was tied to a specific prospect quote. Example:
+  "You said your team manually pulls a CSV every Monday — here's how our
+  automation removes that." 4+ such linkages.
+- 4: Most benefits tied to pain. 1–2 generic claims allowed.
+- 3: Mix of pain-linked and generic claims. ~50/50.
+- 2: Mostly generic pitching, with rare prospect-specific tie-ins.
+- 1: Pure feature-dump with no connection to prospect context.
+
+Evidence required: at least 2 quoted (prospect-pain → rep-benefit) pairings,
+or note their absence.
+
+
+DIMENSION 4: NEXT STEP CLARITY  (weight 25%)
+--------------------------------------------
+Whether the call ended with a specific, mutually confirmed next action.
+
+A complete next step has FIVE elements:
+  1. A specific date AND time
+  2. A specific format (call, demo, in-person, written deliverable)
+  3. A named attendee list
+  4. A defined agenda or output
+  5. Verbal confirmation from the prospect
+
+Scoring:
+- 5 (Excellent): All 5 elements present.
+- 4 (Strong): 4 elements present; one is ambiguous (typically agenda or
+  attendee list).
+- 3 (Adequate): Specific date and time, prospect verbally agreed, but other
+  elements vague.
+- 2 (Weak): Vague "let's talk again next week" or "I'll send something".
+- 1 (Poor): Rep promised to follow up with no prospect commitment, or no
+  next step proposed at all.
+
+Evidence required: the exact closing exchange where the next step was set.
+This is the highest-leverage moment of the call — quote it precisely.
+
+
+DIMENSION 5: TALK RATIO DISCIPLINE  (weight 15%)
+------------------------------------------------
+Based on the transcript's measured talk_ratio_rep.
+
+For DISCOVERY calls:
+- 5: Rep talked 30–45% of the time.
+- 4: Rep talked 45–55%.
+- 3: Rep talked 55–65%.
+- 2: Rep talked 65–75%.
+- 1: Rep talked more than 75%.
+
+For DEMO calls:
+- 5: Rep talked 50–60% of the time.
+- 4: Rep talked 60–70%.
+- 3: Rep talked 70–75%.
+- 2: Rep talked 75–80%.
+- 1: Rep talked more than 80%.
+
+For COMMERCIAL / NEGOTIATION calls:
+- Talk ratio is not a primary signal here. Score 3 by default and rely on
+  the other dimensions.
+
+
+OVERALL SCORE BANDS
+===================
+The overall score is the weighted average of the five dimensions.
+
+- 4.0–5.0  EXCELLENT — coaching example, share with the team.
+- 3.0–3.9  SOLID — on track, minor improvements identified.
+- 2.5–2.9  MIXED — risk of stalling without rework on specific dimensions.
+- Below 2.5  INTERVENTION REQUIRED — pipeline risk significant; manager
+  should listen and coach within 48 hours.
+
+
+LOSS RISK CATEGORIES
+====================
+Flag any of these signals that appear in the call. Multiple can apply.
+
+- NO_BUDGET_CONFIRMED: prospect cannot describe how purchase decisions are
+  approved or the budget cycle is unclear.
+- CHAMPION_ONLY: a single point of contact, no executive sponsor named.
+- VAGUE_PAIN: prospect cannot quantify pain ($, %, hours, count).
+- NO_DECISION_PROCESS: no timeline, no evaluation criteria, no named
+  decision-makers.
+- COMPETITOR_LOCKED_IN: prospect references competitor as already chosen
+  or strongly favored.
+- STATUS_QUO_BIAS: prospect repeatedly says "we manage today" or "we'll
+  think about it" without committing.
+- TIMELINE_DRIFT: prospect previously gave a timeline that has now slipped
+  without an explained reason.
+
+
+STRENGTHS AND IMPROVEMENTS
+==========================
+Per call, the agent must produce:
+
+- 3–5 specific STRENGTHS — each is a concrete moment quoted from the
+  transcript, not a generic compliment. Bad: "Good rapport." Good: "Rep
+  paraphrased the prospect's quote about manual CSV pulls before responding
+  with the automation pitch — strong listening."
+
+- 3–5 specific IMPROVEMENTS — each cites the missed moment. Bad: "Could
+  ask better questions." Good: "When prospect said 'we lose maybe 20% of
+  new users', rep did not ask what that means in revenue terms — should
+  have followed up with quantification."
+
+
+NEXT-STEP QUALITY LABELS
+========================
+Apply one of:
+- ADVANCED: clear advance secured (concrete next meeting / artifact).
+- STALLED: no forward motion committed.
+- CREATED_RISK: new blockers exposed during the call.
+
+
+ALERT ROUTING (used by Phase 5 alert node)
+==========================================
+- overall_score < user.alert_threshold_low  →  alert_level = "intervention"
+- overall_score >= user.alert_threshold_high →  alert_level = "coaching"
+- otherwise  →  alert_level = "none"

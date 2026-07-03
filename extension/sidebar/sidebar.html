@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <link rel="stylesheet" href="sidebar.css" />
+  <title>Sales Genie</title>
+</head>
+<body>
+  <header>
+    <span class="logo-badge">✦</span>
+    <span class="logo">Sales Genie</span>
+    <div class="conn">
+      <span class="dot" id="conn-dot"></span>
+      <span id="conn-text">…</span>
+    </div>
+  </header>
+
+  <main>
+    <!-- LOGIN / REGISTER (shown when no auth token) -->
+    <section class="state" id="state-login">
+      <h2 id="auth-heading">Sign in</h2>
+      <p class="sub" id="auth-sub">Log in to your Sales Genie account.</p>
+      <div class="field" id="name-field" style="display:none;">
+        <label>Full name</label><input id="login-name" type="text" placeholder="Your name" />
+      </div>
+      <div class="field"><label>Email</label><input id="login-email" type="email" placeholder="you@example.com" /></div>
+      <div class="field"><label>Password</label><input id="login-password" type="password" placeholder="min 10 chars, 1 letter + 1 digit" /></div>
+      <button id="btn-login">Log in</button>
+      <div class="footer-link">
+        <span id="auth-toggle-text">No account?</span>
+        <a href="#" id="auth-toggle">Create one</a>
+      </div>
+      <div class="btn-row">
+        <button class="secondary row" id="btn-open-settings-login">Settings</button>
+      </div>
+      <div class="status" id="login-status"></div>
+    </section>
+
+    <!-- ONBOARDING (shown after register / when setup incomplete) -->
+    <section class="state" id="state-onboarding">
+      <h2>Welcome 👋</h2>
+      <p class="sub">Three quick steps and you're ready to score calls.</p>
+
+      <div class="onb-steps" id="onb-progress"></div>
+
+      <!-- Step 1: Knowledge base (required) -->
+      <div class="onb-card" id="onb-kb">
+        <div class="onb-head"><span class="onb-num"><span>1</span></span> Upload a scoring framework <span class="req">required</span></div>
+        <p class="muted">Calls are scored against <strong>your</strong> frameworks — not generic rules. Upload at least one PDF, DOCX, or TXT.</p>
+        <input id="onb-kb-file" type="file" accept=".pdf,.docx,.txt" />
+        <div class="btn-row"><button class="row" id="onb-kb-upload">Upload</button></div>
+        <div id="onb-kb-list" class="muted" style="margin-top:6px;"></div>
+        <div class="status" id="onb-kb-status"></div>
+      </div>
+
+      <!-- Step 2: Alert preferences -->
+      <div class="onb-card" id="onb-notif">
+        <div class="onb-head"><span class="onb-num"><span>2</span></span> Alert preferences</div>
+        <div class="field"><label>Manager email (alerts go here; blank = your own email)</label>
+          <input id="onb-manager" type="email" placeholder="manager@company.com" /></div>
+        <div class="field"><label>Alert below (intervention) / at (coaching)</label>
+          <div style="display:flex; gap:8px;">
+            <input id="onb-low" type="text" placeholder="2.5" style="flex:1;" />
+            <input id="onb-high" type="text" placeholder="4.0" style="flex:1;" />
+          </div></div>
+        <div class="field"><label><input id="onb-notify" type="checkbox" style="width:auto;margin-right:6px;" checked />Email me alerts</label></div>
+        <div class="btn-row"><button class="row" id="onb-save-prefs">Save preferences</button></div>
+        <div class="status" id="onb-notif-status"></div>
+      </div>
+
+      <!-- Step 3: connectors (optional) -->
+      <div class="onb-card" id="onb-connectors">
+        <div class="onb-head"><span class="onb-num"><span>3</span></span> Connect a database <span class="opt">optional</span></div>
+        <p class="muted">Fan analyses out to Notion or Google Sheets. You can do this later.</p>
+        <div class="btn-row"><button class="secondary row" id="onb-open-settings">Open full settings</button></div>
+      </div>
+
+      <button id="onb-finish" style="margin-top:12px;">Finish setup →</button>
+      <div class="footer-link"><a href="#" id="onb-skip">skip for now</a></div>
+    </section>
+
+    <!-- IDLE -->
+    <section class="state" id="state-idle">
+      <div class="account-chip">
+        <div class="avatar" id="idle-avatar">?</div>
+        <div class="who">
+          <div class="email" id="idle-email">…</div>
+          <div class="sub2" id="idle-setup-state">checking setup…</div>
+        </div>
+        <button class="icon-btn" id="btn-run-setup" title="Edit setup">✎</button>
+      </div>
+
+      <h2>Recent calls</h2>
+      <div id="idle-history"><p class="muted">Loading history…</p></div>
+
+      <div class="btn-row" style="margin-top:12px;">
+        <button class="secondary row" id="btn-open-settings">Settings</button>
+        <button class="secondary row" id="btn-logout">Log out</button>
+      </div>
+      <p class="sub" id="idle-hint" style="margin-top:12px;">
+        Open a Zoom, Meet, Gong, or Teams call and this panel will offer to record it.
+      </p>
+    </section>
+
+    <!-- CALL_DETECTED -->
+    <section class="state" id="state-detected">
+      <h2>Call detected</h2>
+      <div class="card">
+        <div><strong id="detected-platform">—</strong></div>
+        <div class="muted" id="detected-title"></div>
+      </div>
+      <button id="btn-start-recording" style="margin-top:12px;">Start recording</button>
+      <p class="sub" style="margin-top:10px;">
+        ⚠️ Recording captures both sides of the call audio. Ensure you have consent
+        from all participants before recording.
+      </p>
+      <div class="status" id="detected-status"></div>
+      <div class="btn-row"><button class="secondary row" id="btn-detected-idle">Back</button></div>
+    </section>
+
+    <!-- RECORDING -->
+    <section class="state" id="state-recording">
+      <div class="rec-indicator"><span class="dot rec"></span> RECORDING</div>
+      <div class="rec-timer" id="rec-timer">00:00</div>
+      <div class="muted" id="rec-platform" style="text-align:center;"></div>
+      <div class="live-transcript" id="live-transcript">Audio is being captured and uploaded in 1-second chunks…</div>
+      <button class="danger" id="btn-stop-recording" style="margin-top:12px;">Stop &amp; analyze</button>
+      <div class="status" id="recording-status"></div>
+    </section>
+
+    <!-- PROCESSING -->
+    <section class="state" id="state-processing">
+      <h2>Analyzing</h2>
+      <ul class="steps" id="proc-steps">
+        <li data-step="recording"><span class="icon">✓</span> Recording saved</li>
+        <li data-step="transcribing"><span class="icon">⟳</span> Transcribing audio…</li>
+        <li data-step="analyzing"><span class="icon">•</span> Scoring against your frameworks…</li>
+        <li data-step="saving"><span class="icon">•</span> Saving results…</li>
+      </ul>
+      <div class="status show info" id="proc-status">Working…</div>
+    </section>
+
+    <!-- RESULTS -->
+    <section class="state" id="state-results">
+      <div id="results-body"></div>
+      <div class="btn-row">
+        <button class="row" id="btn-save-db">Save to database</button>
+        <button class="secondary row" id="btn-copy-summary">Copy summary</button>
+      </div>
+      <div class="status" id="results-status"></div>
+      <div class="btn-row"><button class="secondary row" id="btn-results-idle">Done</button></div>
+    </section>
+
+    <!-- SAVED -->
+    <section class="state" id="state-saved">
+      <h2>Saved ✓</h2>
+      <div class="card" id="saved-body"></div>
+      <button style="margin-top:12px;" id="btn-saved-idle">Back to home</button>
+    </section>
+  </main>
+
+  <script src="sidebar.js"></script>
+</body>
+</html>

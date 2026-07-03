@@ -1,0 +1,144 @@
+CALL-TYPE PROTOCOLS v1.0
+==========================
+
+Different call types have different success criteria. Apply the protocol
+that matches the classified call type from the main framework.
+
+
+DISCOVERY CALL PROTOCOL
+=======================
+Goal: validate fit, uncover pain, qualify the opportunity.
+
+Required moves (rep should hit ≥6 of these for a strong call):
+  1. Open-ended opening question about current state
+  2. Pain quantification (numeric impact: $, %, hours, people)
+  3. Timeline question ("when do you want this solved by?")
+  4. Prior-solution question ("what have you tried before?")
+  5. Decision-process question ("who else is involved in the decision?")
+  6. Success-criteria question ("what would success look like?")
+  7. Recap and confirmation of key points
+  8. Specific next-step proposed
+
+Forbidden moves on a discovery call (cap score at 2 if observed):
+  - Demoing the product
+  - Quoting pricing
+  - Asking for a credit card
+  - Closing language ("can we get this set up today?")
+
+Talk ratio target: rep 30–45%.
+
+
+DEMO / SOLUTION REVIEW PROTOCOL
+================================
+Goal: map product capabilities to prospect's previously-stated pain.
+
+Required moves:
+  1. Recap of pain points from earlier discovery (at the start)
+  2. At least 3 explicit (prospect-pain → product-feature) linkages
+  3. Pause for questions after each major feature block
+  4. Confirm understanding ("does that make sense?", "any concerns?")
+  5. Specific next step with date and stakeholders
+
+Forbidden moves (cap score at 2):
+  - Demoing without prior discovery context
+  - Generic feature-dump unrelated to stated pain
+  - Skipping the confirmation step
+
+Talk ratio target: rep 50–60% (rep IS demonstrating, so more talk is OK).
+
+
+TECHNICAL VALIDATION PROTOCOL
+==============================
+Goal: address implementation, security, and integration concerns.
+
+Required moves:
+  1. Take notes on each technical question (verbal acknowledgment)
+  2. Be honest about what isn't supported (don't bluff)
+  3. Identify owner for each follow-up item
+  4. Confirm a specific document or POC scope for the next step
+
+Forbidden moves (cap score at 1):
+  - Claiming capability that doesn't exist
+  - Avoiding hard questions
+  - Promising features without engineering sign-off
+
+Talk ratio: variable — driven by technical depth of questions.
+
+
+COMMERCIAL / NEGOTIATION PROTOCOL
+==================================
+Goal: align on price, terms, contract path.
+
+Required moves:
+  1. Anchor value before discussing price
+  2. Tie price to the prospect's quantified pain (from earlier discovery)
+  3. Surface ALL outstanding concerns before negotiating ("if I get you
+     to $X, is there anything else that would stop us?")
+  4. Confirm decision-maker and signing path
+  5. Set a specific contract milestone
+
+Forbidden moves (cap score at 2):
+  - Discounting reflexively without value re-anchoring
+  - Negotiating before all concerns are on the table
+  - Skipping the "decision-maker" check
+
+Talk ratio: not a primary signal — score 3 by default per main framework.
+
+
+CLOSING PROTOCOL
+================
+Goal: secure verbal or written commitment to move forward.
+
+Required moves:
+  1. Recap key value points
+  2. Address final concerns explicitly
+  3. State the path to signature
+  4. Ask for the close DIRECTLY (not vaguely)
+  5. Confirm verbal "yes" or document the specific blocker
+
+Talk ratio: rep 40–55%.
+
+
+SERVICE / INBOUND PROTOCOL
+===========================
+Goal: resolve the customer's stated need efficiently while finding an
+appropriate upsell or retention moment.
+
+Note: many "Service" calls (like inbound customer-service requests) lack
+discovery requirements. Score Dimension 1 (Discovery Quality) using a
+RELAXED rubric: pain is already self-disclosed by the customer in their
+opening request.
+
+Required moves:
+  1. Acknowledge the customer's stated need within first 2 turns
+  2. Verify identity / account (if relevant)
+  3. Provide accurate information
+  4. Surface relevant promotion or upsell IF it fits the customer's need
+  5. Confirm resolution before ending
+
+Forbidden moves (cap score at 2):
+  - Pushing an unrelated upsell
+  - Failing to address the original need
+  - Closing without confirmation
+
+Talk ratio: rep 50–70% acceptable on service calls.
+
+
+FOLLOW-UP / CHECK-IN PROTOCOL
+==============================
+Goal: maintain momentum without burning the prospect's time.
+
+Required moves:
+  1. Brief acknowledgment of last interaction
+  2. Specific update or new information shared
+  3. Explicit ask about timeline or blockers
+  4. Concrete next step (not "let's stay in touch")
+
+Talk ratio: rep 30–50%.
+
+
+PROTOCOL VIOLATION SCORING
+==========================
+When the rep does a forbidden move for the classified call type, cap the
+relevant dimension at the value listed above and call it out in the
+improvements section as "Protocol violation: [specific behavior]".

@@ -1,0 +1,98 @@
+STRICT EVIDENCE QUOTING RULES v1.0
+====================================
+
+These rules govern how the agent records EVIDENCE in dimension_scores,
+strengths, and improvements. Violations break the analysis.
+
+
+RULE 1: VERBATIM ONLY
+---------------------
+Every quoted phrase in `evidence`, `strengths`, or `improvements` must
+appear character-exact in the call transcript.
+
+Acceptable:
+  Rep said "Did you receive a mailer from us?" → evidence is exactly that.
+
+NOT acceptable:
+  Rep asked about the mailer.   (paraphrased, not quoted)
+  Rep said "Did you get our mailer?"   (rewritten, not exact)
+
+
+RULE 2: NO BORROWING FROM FRAMEWORKS
+------------------------------------
+The other documents in this knowledge base contain hypothetical example
+phrases — they describe DIFFERENT, NON-REAL calls. The following phrases
+are FRAMEWORK ILLUSTRATIONS and must NEVER appear in your analysis unless
+they are also literally present in the transcript being evaluated:
+
+  - "manual CSV pulls"
+  - "automation pitch"
+  - "we lose maybe 20% of new users"
+  - "in revenue terms"
+  - "twenty percent"
+  - "decision criteria"
+  - "champion-only relationship"
+  - "MEDDIC"
+  - any phrase wrapped in <example>...</example> tags
+
+If you see yourself about to write one of these in a strength or evidence
+field, STOP. Re-read the actual transcript. Use what THIS rep said.
+
+
+RULE 3: SPEAKER LABEL FORMAT
+----------------------------
+When quoting, include the speaker label exactly as in the transcript:
+  "Rep: Thank you for calling Nissan."
+  "Prospect: I want to update my map."
+
+Do NOT invent a speaker label. Do NOT drop the colon. Do NOT add
+ellipses unless they were in the source.
+
+
+RULE 4: BRIEF QUOTES, NOT ENTIRE TURNS
+--------------------------------------
+Evidence quotes should be SHORT (under 25 words) and surgical. Quote the
+exact sentence that supports your point, not the whole speaking turn.
+
+  Whole turn (too long): "Rep: Alright, well, here are a few reasons to
+  consider purchasing today. It looks as though you haven't updated your
+  vehicle for 3 years, so that would be the equivalent of getting 3 years'
+  worth of updates for the price of one. In addition, special offers like
+  the current promotion don't come around too often."
+
+  Surgical (good): "Rep: It looks as though you haven't updated your
+  vehicle for 3 years, so that would be the equivalent of getting 3 years'
+  worth of updates for the price of one."
+
+
+RULE 5: STRENGTHS AND IMPROVEMENTS ARE ABOUT THIS REP
+-----------------------------------------------------
+Strengths and improvements must describe behavior that THIS rep did or
+failed to do in THIS specific transcript. Each one should cite a moment
+from the transcript.
+
+  Bad strength (generic): "Rep showed good rapport."
+  Bad strength (borrowed): "Rep paraphrased the prospect's quote about
+    CSV pulls before responding."
+  Good strength: "Rep acknowledged John's hesitation about cost and then
+    explicitly offered a $50 discount to reduce friction, as in 'I would
+    definitely recommend taking advantage of the extra $50 off before it
+    expires.'"
+
+  Bad improvement (generic): "Could ask better questions."
+  Bad improvement (borrowed): "Should have followed up with quantification
+    in revenue terms."
+  Good improvement: "When the prospect said 'I'm not really sure if I
+    can afford it right now', the rep moved straight to discount tactics
+    instead of asking what was making it feel unaffordable."
+
+
+RULE 6: SCORE THE TRANSCRIPT, NOT YOUR GUESS OF THE CALL
+--------------------------------------------------------
+You only see what's in the transcript. If the transcript ends mid-sentence
+or lacks a section (e.g. no greeting was captured), score what's present
+without assuming what happened in the missing parts.
+
+If the transcript is short or partial, prefer LOWER scores for dimensions
+where you'd need more evidence to score high. Better to be conservative
+than to project quality that isn't visible.

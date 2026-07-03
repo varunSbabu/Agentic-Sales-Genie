@@ -1,0 +1,14 @@
+Rep: Hi is this Jamie?
+Prospect: Yes speaking.
+Rep: Great. I'm calling about our marketing automation platform. It's the best in the industry. Do you have five minutes?
+Prospect: I guess.
+Rep: Excellent. Our platform automates email, SMS, and social media. We integrate with over 200 tools. Pricing starts at $2,000 a month for the Pro tier.
+Prospect: Okay.
+Rep: Would you be interested in a demo?
+Prospect: I mean, we already use HubSpot and it works fine.
+Rep: HubSpot is limited compared to us. Ours has much better AI features. Can I set up a demo next week?
+Prospect: I don't know. Probably not right now.
+Rep: What if I offered 20% off for the first year?
+Prospect: I really need to run. I'll think about it.
+Rep: Okay I'll follow up next month. Thanks for your time.
+Prospect: Sure. Bye.

@@ -1,0 +1,20 @@
+Rep: Thank you for calling Nissan. My name is Lauren. Can I have your name?
+Prospect: Yeah, my name is John Smith.
+Rep: Thank you, John. How can I help you?
+Prospect: Um, I was just calling about to see how much it would cost to update the map in my car.
+Rep: I'd be happy to help you with that today. Did you receive a mailer from us?
+Prospect: I did. Uh, do you need the customer number?
+Rep: Yes, please.
+Prospect: Okay, it's 15243.
+Rep: Thank you, and the year, make, and model of your vehicle?
+Prospect: Yeah, I have a 2009 Nissan Altima.
+Rep: Okay, I think I found your profile here. Can I have you verify your address and phone number, please?
+Prospect: Yes, um, it's 1255 North Research Way, that's in Orem, Utah 84097, and my phone number is 801-431-1000.
+Rep: Thanks, John. I located your information. The newest version we have available for your vehicle is version 7.7, which was released in March of 2012. The price of the new map is $99 plus shipping and tax. Let me go ahead and set up this order for you.
+Prospect: Um, well, can we wait just a second? I'm not really sure if I can afford it right now.
+Rep: Alright, well, here are a few reasons to consider purchasing today. It looks as though you haven't updated your vehicle for 3 years, so that would be the equivalent of getting 3 years' worth of updates for the price of one.
+Prospect: Oh, okay.
+Rep: In addition, special offers like the current promotion don't come around too often. I would definitely recommend taking advantage of the extra $50 off before it expires.
+Prospect: Yeah, that does sound pretty good.
+Rep: If I set this order up for you now, it'll ship out today and for $50 less. Do you have your credit card handy and I can place this order for you now?
+Prospect: Yeah, let's, uh, you know, let's go ahead and use a Visa.

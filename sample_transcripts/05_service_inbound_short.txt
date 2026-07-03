@@ -1,0 +1,11 @@
+Rep: Thanks for calling ABC Software support, this is Ashton.
+Prospect: Hi, I'm locked out of my account.
+Rep: Sorry to hear that. Can I get your account email?
+Prospect: sarah@acmecorp.com
+Rep: One moment. Okay I see your account. I'll send a password reset link now.
+Prospect: Thanks.
+Rep: The link should arrive within a minute. While I have you — I noticed your team is on our Starter plan. You've been hitting the API rate limit weekly. Would you like to hear about our Pro plan?
+Prospect: Not right now, but send me info.
+Rep: Sure, I'll email a comparison. Anything else?
+Prospect: Nope, thanks.
+Rep: Have a good day.

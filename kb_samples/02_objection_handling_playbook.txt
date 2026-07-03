@@ -1,0 +1,108 @@
+OBJECTION HANDLING PLAYBOOK v1.0
+================================
+
+This playbook complements the scoring framework. It defines what GOOD
+objection handling looks like and how to score it within Dimension 2
+(Active Listening) and Dimension 3 (Value Articulation).
+
+
+THE 5-STEP OBJECTION RESPONSE
+=============================
+Every objection should be handled in this order:
+
+  1. ACKNOWLEDGE — explicitly name what the prospect said.
+       Good: "I hear you saying budget is tight this year."
+       Bad: ignoring, deflecting, or jumping to a rebuttal.
+
+  2. CLARIFY — ask a follow-up question to understand the root cause.
+       Good: "Is the constraint a budget freeze, or is it that we
+              haven't shown enough value yet?"
+       Bad: assuming you know what they mean.
+
+  3. ISOLATE — confirm this is the only issue or surface others.
+       Good: "If we solve the budget question, is there anything else
+              standing between us today?"
+
+  4. RESPOND — answer with evidence specific to their context.
+       Good: tie the response back to a prior quoted pain.
+       Bad: generic benefit re-pitch.
+
+  5. CONFIRM — check whether the response landed.
+       Good: "Does that change how you're thinking about this?"
+       Bad: assuming silence is agreement.
+
+
+COMMON OBJECTIONS AND BEST-PRACTICE RESPONSES
+=============================================
+
+OBJECTION: "Send me some information and I'll review it."
+  Root cause usually: low buy-in, no clear value yet established.
+  Strong response: "Happy to. Before I do — what specifically would you
+  want to see in the materials so I send the right thing?"
+  Weak response: sending generic collateral with no agreed criteria.
+
+OBJECTION: "We're happy with our current solution."
+  Root cause usually: status-quo bias, not enough pain articulated.
+  Strong response: acknowledge satisfaction, then probe edges —
+  "Glad it's working. If there were one thing you could change about it
+  tomorrow, what would it be?"
+  Weak response: bashing the competitor.
+
+OBJECTION: "It's too expensive."
+  Root cause usually: value not anchored to a quantified pain.
+  Strong response: re-anchor on the pain quantification —
+  "You mentioned you're losing about $X per quarter to this issue.
+  Help me understand how the price compares to that cost."
+  Weak response: immediate discount offer.
+
+OBJECTION: "I need to talk to my team."
+  Root cause usually: champion-only relationship.
+  Strong response: ask to be part of the team conversation —
+  "Of course. Would it help if we set up a 20-min walkthrough with
+  them next week so they hear it firsthand?"
+  Weak response: agreeing to wait passively.
+
+OBJECTION: "Now isn't the right time."
+  Root cause usually: timeline drift or de-prioritization.
+  Strong response: explore the trigger event —
+  "What would need to happen for this to become urgent?"
+  Weak response: pushing harder on urgency.
+
+OBJECTION: "How are you different from <competitor>?"
+  Strong response: redirect to their criteria —
+  "Good question. Before I answer — what specifically about
+  <competitor> are you trying to evaluate? Different prospects care
+  about different things."
+  Weak response: rattling off generic comparison points.
+
+
+SCORING IMPACT
+==============
+When evaluating Dimension 2 (Active Listening):
+- If rep used the 5-step response on a substantive objection → +1 to score.
+- If rep ignored or talked over an objection → cap dimension at 2.
+
+When evaluating Dimension 3 (Value Articulation):
+- If rep re-anchored value to a previously-quoted prospect pain when
+  handling pricing objections → strong signal toward 4-5.
+- If rep immediately offered a discount → cap dimension at 3.
+
+
+SIGNALS OF EXCELLENT OBJECTION HANDLING
+=======================================
+Quote any of these in strengths section if observed:
+- Rep paused to acknowledge before responding.
+- Rep asked at least one clarifying question.
+- Rep tied the response to a prospect-specific quote.
+- Rep asked "is that the only concern?" or equivalent isolation question.
+- Rep confirmed the response landed before moving on.
+
+
+SIGNALS OF POOR OBJECTION HANDLING
+==================================
+Quote any of these in improvements section if observed:
+- Rep cut the prospect off mid-objection.
+- Rep launched into a defensive rebuttal.
+- Rep offered a discount as the first response to a pricing objection.
+- Rep agreed to "send information" without defining what or why.
+- Rep moved on without checking if the response landed.

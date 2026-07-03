@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <link rel="stylesheet" href="../sidebar/sidebar.css" />
+  <title>Sales Genie — Settings</title>
+  <style>
+    /* Override the popup's fixed 384px sizing — this is a full page */
+    html, body { width: 100% !important; min-height: 100vh; }
+    body {
+      background:
+        radial-gradient(900px 400px at 100% -5%, rgba(124,58,237,0.14), transparent 60%),
+        radial-gradient(900px 400px at 0% -5%, rgba(47,129,247,0.14), transparent 60%),
+        var(--bg);
+    }
+    /* Full-width gradient header */
+    header {
+      padding: 18px 40px;
+      position: sticky; top: 0; z-index: 10;
+    }
+    header .logo { font-size: 17px; }
+    .page {
+      max-width: 1120px; margin: 0 auto; padding: 28px 40px 60px;
+    }
+    .page-title { font-size: 22px; font-weight: 700; margin: 0 0 4px; }
+    .page-lead { color: var(--muted); font-size: 13px; margin: 0 0 24px; }
+
+    /* Responsive card grid */
+    .grid {
+      display: grid; gap: 20px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    @media (max-width: 820px) { .grid { grid-template-columns: 1fr; } }
+
+    section.block {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 22px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+    section.block.span-2 { grid-column: 1 / -1; }
+    section.block h2 { font-size: 12px; margin: 0 0 4px; display: flex; align-items: center; gap: 8px; }
+    section.block .block-desc { color: var(--muted); font-size: 12px; margin: 0 0 16px; line-height: 1.5; }
+    section.block .block-icon {
+      width: 28px; height: 28px; border-radius: 8px; background: var(--grad-soft);
+      display: inline-flex; align-items: center; justify-content: center; font-size: 14px;
+      border: 1px solid var(--border);
+    }
+    .block-head { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+    .block-head .titles h2 { margin: 0; }
+    .block-head .titles .block-desc { margin: 2px 0 0; }
+
+    textarea {
+      width: 100%; min-height: 110px; background: var(--panel-2); color: var(--text);
+      border: 1px solid var(--border); border-radius: 8px; font-family: var(--mono);
+      font-size: 12px; padding: 10px; resize: vertical;
+    }
+    textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(47,129,247,0.15); }
+
+    /* Ready checklist */
+    .checklist { margin: 0; padding: 0; }
+    .checklist li {
+      list-style: none; padding: 10px 12px; margin-bottom: 8px; border-radius: 9px;
+      background: var(--panel-2); border: 1px solid var(--border);
+      display: flex; align-items: center; gap: 10px; font-size: 13px;
+    }
+    .checklist li .ck { width: 20px; height: 20px; border-radius: 50%; display: inline-flex;
+      align-items: center; justify-content: center; font-size: 12px; flex: none; }
+    .ok-mark .ck, li.is-ok .ck { background: rgba(63,185,80,0.2); color: var(--green); }
+    .no-mark .ck, li.is-no .ck { background: var(--panel); color: var(--muted); }
+
+    .kb-doc { display: flex; gap: 10px; align-items: center; padding: 8px 10px;
+      background: var(--panel-2); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 6px; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <header>
+    <span class="logo-badge">✦</span>
+    <span class="logo">Sales Genie</span>
+    <div class="conn"><span class="dot" id="s-conn-dot"></span><span id="s-conn-text">…</span></div>
+  </header>
+
+  <div class="page">
+    <h1 class="page-title">Settings</h1>
+    <p class="page-lead">Configure your backend, scoring frameworks, database connections, and alerts.</p>
+
+    <div class="grid">
+      <!-- 1. Backend + Account -->
+      <section class="block span-2">
+        <div class="block-head">
+          <span class="block-icon">🔌</span>
+          <div class="titles"><h2>Account &amp; backend</h2><div class="block-desc">Where the extension sends data, and who's signed in.</div></div>
+        </div>
+        <div style="display:grid; grid-template-columns: 2fr 1fr; gap:16px; align-items:end;">
+          <div class="field" style="margin:0;"><label>Backend URL</label><input id="s-backend" type="text" placeholder="http://localhost:8000" /></div>
+          <button id="s-save-backend">Save backend</button>
+        </div>
+        <div id="s-account" class="muted" style="margin-top:12px;"></div>
+        <div class="status" id="s-account-status"></div>
+      </section>
+
+      <!-- 2. Knowledge base -->
+      <section class="block">
+        <div class="block-head">
+          <span class="block-icon">📚</span>
+          <div class="titles"><h2>Knowledge base</h2><div class="block-desc">Upload PDF / DOCX / TXT frameworks. Calls score against YOUR rubrics.</div></div>
+        </div>
+        <div class="field"><input id="s-kb-file" type="file" accept=".pdf,.docx,.txt" /></div>
+        <div class="btn-row"><button class="row" id="s-kb-upload">Upload</button><button class="secondary row" id="s-kb-refresh">Refresh</button></div>
+        <div id="s-kb-list" class="muted" style="margin-top:14px;">…</div>
+        <div class="status" id="s-kb-status"></div>
+      </section>
+
+      <!-- 4. Notifications -->
+      <section class="block">
+        <div class="block-head">
+          <span class="block-icon">🔔</span>
+          <div class="titles"><h2>Notifications</h2><div class="block-desc">Alert emails fire when a call crosses your thresholds.</div></div>
+        </div>
+        <div class="field"><label>Manager email (blank = your own email)</label><input id="s-manager-email" type="email" placeholder="manager@company.com" /></div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div class="field"><label>Low (intervention below)</label><input id="s-low" type="text" placeholder="2.5" /></div>
+          <div class="field"><label>High (coaching at/above)</label><input id="s-high" type="text" placeholder="4.0" /></div>
+        </div>
+        <div class="field"><label><input id="s-notify-email" type="checkbox" style="width:auto;margin-right:6px;" />Email notifications enabled</label></div>
+        <div class="btn-row"><button class="row" id="s-save-prefs">Save preferences</button><button class="secondary row" id="s-test-email">Send test email</button></div>
+        <div class="status" id="s-notif-status"></div>
+      </section>
+
+      <!-- 3. Integrations -->
+      <section class="block span-2">
+        <div class="block-head">
+          <span class="block-icon">🗄️</span>
+          <div class="titles"><h2>Database connections</h2><div class="block-desc">Optional — fan analyses out to Notion and Google Sheets. Tokens are encrypted at rest.</div></div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px;">
+          <div>
+            <div class="section-label" style="color:var(--muted); font-weight:700; margin-bottom:8px;">Notion</div>
+            <div class="field"><label>Token</label><input id="s-notion-token" type="password" placeholder="secret_…" /></div>
+            <div class="field"><label>Database ID</label><input id="s-notion-db" type="text" placeholder="32-char id" /></div>
+            <div class="btn-row"><button class="secondary row" id="s-save-notion">Save Notion</button><button class="secondary row" id="s-test-notion">Test</button></div>
+          </div>
+          <div>
+            <div class="section-label" style="color:var(--muted); font-weight:700; margin-bottom:8px;">Google Sheets</div>
+            <div class="field"><label>Sheet ID</label><input id="s-sheets-id" type="text" placeholder="from the sheet URL" /></div>
+            <div class="field"><label>Service account JSON</label><textarea id="s-sheets-creds" placeholder='{"type":"service_account",...}'></textarea></div>
+            <div class="btn-row"><button class="secondary row" id="s-save-sheets">Save Sheets</button><button class="secondary row" id="s-test-sheets">Test</button></div>
+          </div>
+        </div>
+        <div class="status" id="s-integ-status"></div>
+      </section>
+
+      <!-- 5. Status checklist -->
+      <section class="block span-2">
+        <div class="block-head">
+          <span class="block-icon">✅</span>
+          <div class="titles"><h2>Ready checklist</h2><div class="block-desc">What's configured and ready to go.</div></div>
+        </div>
+        <ul class="checklist" id="s-checklist"></ul>
+      </section>
+    </div>
+  </div>
+  <script src="settings.js"></script>
+</body>
+</html>

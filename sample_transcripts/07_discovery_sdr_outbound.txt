@@ -1,0 +1,23 @@
+Rep: Hi Sarah, thanks for taking the time today. I know your calendar is packed. Before I jump into anything, I'd love to start by just understanding your world right now. Can you tell me a bit about how your outbound team is structured today?
+Prospect: Sure. We have nine SDRs split into two pods, one focused on mid-market and one on enterprise. They sit under me, and I report into the VP of Sales. We've grown the team from four to nine in the last twelve months.
+Rep: Got it, that's a fast ramp. When you think about what's working and what's not in that setup right now, what's the biggest thing on your mind?
+Prospect: Honestly, the team is busy, but our reply rates have been dropping. We were at around 8% on cold emails six months ago, now we're closer to 3%. Meeting books are down maybe 30% quarter over quarter even though we added headcount.
+Rep: That's a meaningful drop. Have you been able to put a dollar figure on what that 30% drop in meetings is costing the pipeline?
+Prospect: We estimate each booked meeting eventually generates around $4,200 in pipeline. We're missing roughly 40 meetings a month, so that's about $170,000 in lost pipeline every month.
+Rep: That's significant. And from your perspective, what do you think is driving the drop?
+Prospect: A few things. Our templates feel stale. The team is sending the same sequence variations they've used for a year. And honestly, we don't have great visibility into what's working at the message level.
+Rep: That makes sense. When you say no visibility — you can't see open rates and replies per template, or you can see the numbers but can't tell which content variants are driving what?
+Prospect: The second one. We have open rates in our current tool but we can't really A/B test or see which subject lines outperform. It's all manual.
+Rep: Okay. Have you tried any specific solutions for that already, even internally?
+Prospect: We tried a homegrown tracker for a quarter. It worked for two weeks then broke when our CRM schema changed. Engineering doesn't have time to maintain it.
+Rep: Understood. And as you think about solving this, when do you need to have something in place by? Is there a specific event or quarter driving the timeline?
+Prospect: We have a board meeting in late September where I have to present a plan for getting reply rates back above 6%. So realistically I'd need to make a decision by mid-August and have something rolled out by early September.
+Rep: That's tight but doable. Who else would be involved in the decision on your end?
+Prospect: It'd be me as the primary, our VP of Sales for sign-off on the budget, and our RevOps lead for integration approval since it touches our CRM.
+Rep: That's helpful. If we end up going forward, what would success look like in your mind? Like, ninety days after rolling something out, what's the number or behavior change that says it's working?
+Prospect: Reply rates back to at least 6%, and at least 30 booked meetings per SDR per month. Right now we're at 22.
+Rep: Got it. Sarah, here's what I'm thinking. Based on what you've described — the visibility gap, the stale templates, the September deadline — I'd love to put together a tailored walkthrough specifically focused on the A/B testing piece and how our customers have moved reply rates from the 3% range to above 6%. I can have one of our solution architects walk you through your actual CRM integration too so RevOps can see what they'd be signing off on. Does Thursday next week at 2pm work for that?
+Prospect: Thursday at 2pm works. Can you include my RevOps lead, Marcus, in the invite?
+Rep: Absolutely, I'll send it for both of you with a short agenda. I'll also send over two short case studies tonight from companies in your stage that hit similar numbers — that way you can show your VP something concrete before our Thursday session.
+Prospect: That'd be great. Thank you.
+Rep: Thanks Sarah. Talk Thursday.

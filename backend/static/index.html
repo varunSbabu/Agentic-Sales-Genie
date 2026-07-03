@@ -1,0 +1,1417 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sales Genie — Dev Console</title>
+  <style>
+    :root {
+      --bg: #0e1116;
+      --panel: #161b22;
+      --panel-2: #1f262e;
+      --border: #30363d;
+      --text: #e6edf3;
+      --muted: #8b949e;
+      --accent: #2f81f7;
+      --accent-hover: #1f6feb;
+      --green: #3fb950;
+      --red: #f85149;
+      --amber: #d29922;
+      --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; background: var(--bg); color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      font-size: 14px; line-height: 1.5; }
+
+    header { padding: 20px 32px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+    header h1 { margin: 0; font-size: 18px; font-weight: 600; }
+    header .badge { background: var(--panel); padding: 4px 10px; border-radius: 12px;
+      font-size: 12px; color: var(--muted); border: 1px solid var(--border); }
+    header .status { margin-left: auto; display: flex; align-items: center; gap: 8px;
+      font-size: 12px; color: var(--muted); }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+    .dot.ok { background: var(--green); }
+    .dot.err { background: var(--red); }
+
+    /* Auth banner — always visible across the top under the header */
+    .auth-banner { padding: 10px 32px; border-bottom: 1px solid var(--border);
+      background: var(--panel); display: flex; gap: 12px; align-items: center;
+      font-size: 13px; }
+    .auth-banner .who { font-family: var(--mono); color: var(--text); }
+    .auth-banner .who .email { color: var(--accent); }
+    .auth-banner.logged-out { background: rgba(248, 81, 73, 0.08); }
+    .auth-banner.logged-out .who { color: var(--amber); }
+
+    main { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 24px 32px;
+      max-width: 1400px; margin: 0 auto; }
+    main .full { grid-column: 1 / -1; }
+
+    .panel { background: var(--panel); border: 1px solid var(--border);
+      border-radius: 8px; padding: 20px; position: relative; }
+    .panel h2 { margin: 0 0 4px; font-size: 14px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); }
+    .panel .subtitle { margin: 0 0 16px; color: var(--muted); font-size: 12px; }
+    .panel.disabled { opacity: 0.5; pointer-events: none; }
+    .panel .pill { display: inline-block; padding: 2px 8px; border-radius: 10px;
+      font-size: 11px; background: var(--panel-2); color: var(--muted);
+      border: 1px solid var(--border); margin-left: 8px; }
+    .panel .pill.ready { background: rgba(63, 185, 80, 0.15); color: var(--green);
+      border-color: rgba(63, 185, 80, 0.4); }
+
+    /* Locked overlay on KB / Transcription when not logged in */
+    .panel.locked::after {
+      content: '🔒 Log in to use this'; position: absolute; inset: 0;
+      background: rgba(14, 17, 22, 0.92); display: flex;
+      align-items: center; justify-content: center; color: var(--muted);
+      border-radius: 8px; font-size: 13px; pointer-events: auto;
+    }
+
+    .row { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
+    .row label { width: 100px; color: var(--muted); font-size: 12px; }
+    .row input, .row textarea, .row select {
+      flex: 1; padding: 8px 12px; background: var(--panel-2); color: var(--text);
+      border: 1px solid var(--border); border-radius: 6px; font-family: inherit;
+      font-size: 13px;
+    }
+    .row textarea { font-family: var(--mono); resize: vertical; min-height: 80px; }
+    .row input:focus, .row textarea:focus { outline: none; border-color: var(--accent); }
+    .file-info { font-size: 12px; color: var(--muted); padding: 4px 0; min-height: 20px; }
+    .file-info.has-file { color: var(--green); font-family: var(--mono); }
+
+    .actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap;
+      align-items: center; }
+    button { padding: 8px 16px; background: var(--accent); color: white; border: none;
+      border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500;
+      transition: background 0.15s; }
+    button:hover:not(:disabled) { background: var(--accent-hover); }
+    button.secondary { background: var(--panel-2); color: var(--text);
+      border: 1px solid var(--border); }
+    button.secondary:hover:not(:disabled) { background: var(--border); }
+    button.danger { background: var(--red); }
+    button:disabled { opacity: 0.4; cursor: not-allowed; }
+    button.loading::after { content: '…'; margin-left: 4px; }
+
+    /* Inline panel status — sits right under the buttons in each panel */
+    .panel-status { font-size: 12px; padding: 6px 10px; margin-top: 8px;
+      border-radius: 4px; font-family: var(--mono); display: none; }
+    .panel-status.show { display: block; }
+    .panel-status.info { background: rgba(47, 129, 247, 0.1); color: var(--accent); }
+    .panel-status.ok { background: rgba(63, 185, 80, 0.1); color: var(--green); }
+    .panel-status.err { background: rgba(248, 81, 73, 0.1); color: var(--red); }
+    .panel-status.warn { background: rgba(210, 153, 34, 0.1); color: var(--amber); }
+
+    .me-card { background: var(--panel-2); padding: 12px; border-radius: 6px;
+      border: 1px solid var(--border); margin-top: 12px; font-family: var(--mono);
+      font-size: 12px; }
+    .me-card .field { margin-bottom: 4px; }
+    .me-card .key { color: var(--muted); display: inline-block; width: 130px; }
+    .me-card .val { color: var(--text); }
+    .me-card.empty { color: var(--muted); text-align: center; padding: 20px;
+      font-family: inherit; }
+
+    #log {
+      background: #050709; border: 1px solid var(--border); border-radius: 6px;
+      padding: 12px; font-family: var(--mono); font-size: 12px;
+      max-height: 320px; overflow-y: auto; white-space: pre-wrap;
+    }
+    #log .entry { padding: 6px 0; border-bottom: 1px solid #161b22; }
+    #log .entry:last-child { border: none; }
+    #log .ts { color: #6e7681; }
+    #log .method { display: inline-block; width: 50px; }
+    #log .ok { color: var(--green); }
+    #log .err { color: var(--red); }
+    #log .pending { color: var(--amber); }
+    #log .url { color: var(--accent); }
+    #log .body { color: var(--muted); margin-left: 64px; font-size: 11px;
+      white-space: pre-wrap; word-break: break-all; }
+
+    .hint { color: var(--muted); font-size: 11px; margin-top: 8px; }
+    a { color: var(--accent); }
+    code { background: var(--panel-2); padding: 1px 5px; border-radius: 3px;
+      font-size: 11px; font-family: var(--mono); }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Sales Genie</h1>
+    <span class="badge">Dev Console</span>
+    <div class="status">
+      <span class="dot" id="health-dot"></span>
+      <span id="health-text">checking backend…</span>
+    </div>
+  </header>
+
+  <!-- Persistent login state -->
+  <div id="auth-banner" class="auth-banner logged-out">
+    <span id="auth-icon">⚠️</span>
+    <span class="who" id="auth-who">Not logged in — register or log in below to unlock other panels.</span>
+  </div>
+
+  <main>
+    <!-- AUTH ------------------------------------------------------------- -->
+    <section class="panel">
+      <h2>Authentication <span class="pill ready">Phase 2</span></h2>
+      <p class="subtitle">Register a new user or log in. JWT is stored in localStorage.</p>
+
+      <div class="row"><label>Email</label>
+        <input id="auth-email" type="email" autocomplete="email" placeholder="you@example.com" />
+      </div>
+      <div class="row"><label>Password</label>
+        <input id="auth-password" type="password" autocomplete="current-password" placeholder="min 10 chars, 1 letter + 1 digit" />
+      </div>
+      <div class="row"><label>Full name</label>
+        <input id="auth-name" type="text" placeholder="only required for register" />
+      </div>
+
+      <div class="actions">
+        <button id="btn-register">Register</button>
+        <button id="btn-login">Login</button>
+        <button id="btn-me" class="secondary">Get /me</button>
+        <button id="btn-refresh" class="secondary">Refresh token</button>
+        <button id="btn-logout" class="danger">Logout</button>
+      </div>
+
+      <div id="auth-status" class="panel-status"></div>
+      <div id="me-card" class="me-card empty">Not logged in.</div>
+    </section>
+
+    <!-- KNOWLEDGE BASE --------------------------------------------------- -->
+    <section id="panel-kb" class="panel locked">
+      <h2>Knowledge Base <span class="pill ready">Phase 3</span></h2>
+      <p class="subtitle">Upload PDF / DOCX / TXT scoring frameworks. Max 50 MB.</p>
+
+      <div class="row">
+        <label>File</label>
+        <input id="kb-file" type="file" accept=".pdf,.docx,.txt" />
+      </div>
+      <div id="kb-file-info" class="file-info">No file selected.</div>
+
+      <div class="actions">
+        <button id="btn-kb-upload" disabled>Upload</button>
+        <button id="btn-kb-refresh" class="secondary">Refresh list</button>
+      </div>
+
+      <div id="kb-status" class="panel-status"></div>
+
+      <div id="kb-list" class="me-card empty" style="margin-top: 12px;">
+        No documents loaded.
+      </div>
+
+      <p class="hint">Ingestion runs in the background — the list auto-refreshes
+        while status is <code>processing</code>.</p>
+    </section>
+
+    <!-- TRANSCRIPTION ---------------------------------------------------- -->
+    <section id="panel-tx" class="panel locked">
+      <h2>Transcription <span class="pill ready">Phase 4</span></h2>
+      <p class="subtitle">Upload audio → AssemblyAI diarized transcript + metrics. Max 200 MB.</p>
+
+      <div class="row">
+        <label>Audio</label>
+        <input id="tx-file" type="file" accept=".mp3,.wav,.m4a,.webm,.ogg,.flac,.mp4" />
+      </div>
+      <div id="tx-file-info" class="file-info">No file selected.</div>
+
+      <div class="actions">
+        <button id="btn-tx-upload" disabled>Transcribe</button>
+      </div>
+
+      <div id="tx-status" class="panel-status"></div>
+
+      <div id="tx-result" class="me-card empty" style="margin-top: 12px;">
+        No transcript yet.
+      </div>
+
+      <p class="hint">First call wakes a remote job — expect 20–60s for short clips.
+        Requires <code>ASSEMBLYAI_API_KEY</code> in <code>.env</code>
+        (<a href="https://www.assemblyai.com/" target="_blank">free 3hr/month tier</a>).</p>
+    </section>
+
+    <!-- ANALYSIS --------------------------------------------------------- -->
+    <section id="panel-analysis" class="panel locked">
+      <h2>Call Analysis <span class="pill ready">Phase 5</span></h2>
+      <p class="subtitle">Paste a transcript and run it through the LangGraph agent.
+        Scores against your uploaded KB frameworks.</p>
+      <div class="row"><label>Transcript</label>
+        <textarea id="analysis-transcript" placeholder="Rep: ...&#10;Prospect: ...&#10;..."></textarea>
+      </div>
+      <div class="actions">
+        <button id="btn-analyze">Analyze (sync)</button>
+        <button id="btn-analyze-async" class="secondary">Analyze (async job)</button>
+      </div>
+      <div id="analysis-status" class="panel-status"></div>
+      <div id="analysis-result" class="me-card empty" style="margin-top: 12px;">
+        No analysis yet.
+      </div>
+      <p class="hint">Runs synchronously — expect 20–40s.
+        Requires <code>ANTHROPIC_API_KEY</code> in <code>.env</code>
+        (the agent uses <code>claude-sonnet-4-6</code>).</p>
+    </section>
+
+    <!-- INTEGRATIONS ----------------------------------------------------- -->
+    <section id="panel-integrations" class="panel locked">
+      <h2>Integrations <span class="pill ready">Phase 6</span></h2>
+      <p class="subtitle">Fan analyses out to Notion + Google Sheets. Tokens encrypted at rest.</p>
+
+      <div id="integrations-status" class="me-card empty" style="margin-bottom: 12px;">
+        Loading status…
+      </div>
+
+      <details style="margin-bottom: 12px;">
+        <summary style="cursor: pointer; color: var(--accent); font-size: 12px; margin-bottom: 8px;">
+          Notion configuration
+        </summary>
+        <div class="row"><label>Token</label>
+          <input id="notion-token" type="password" placeholder="secret_... (from notion.so/my-integrations)" />
+        </div>
+        <div class="row"><label>Database ID</label>
+          <input id="notion-db-id" type="text" placeholder="32-char hex from your Notion DB URL" />
+        </div>
+        <div class="actions">
+          <button id="btn-save-notion" class="secondary">Save Notion</button>
+          <button id="btn-test-notion" class="secondary">Test</button>
+        </div>
+      </details>
+
+      <details style="margin-bottom: 12px;">
+        <summary style="cursor: pointer; color: var(--accent); font-size: 12px; margin-bottom: 8px;">
+          Google Sheets configuration
+        </summary>
+        <div class="row"><label>Sheet ID</label>
+          <input id="sheets-id" type="text" placeholder="from the sheet URL between /d/ and /edit" />
+        </div>
+        <div class="row" style="align-items: flex-start;"><label>Service account JSON</label>
+          <textarea id="sheets-creds" placeholder='{"type":"service_account","client_email":"...@...iam.gserviceaccount.com","private_key":"-----BEGIN PRIVATE KEY-----..."}' style="min-height: 120px;"></textarea>
+        </div>
+        <div class="actions">
+          <button id="btn-save-sheets" class="secondary">Save Sheets</button>
+          <button id="btn-test-sheets" class="secondary">Test</button>
+        </div>
+      </details>
+
+      <div id="integrations-message" class="panel-status"></div>
+
+      <p class="hint">
+        Notion setup: create a database with columns matching the agent's output (Title, Score, Band, Call Type, Alert, Strengths, Improvements, AI Summary, Next Step, Created — see <code>backend/connectors/notion_connector.py</code> for the exact property list). Share the database with your Notion integration.<br>
+        Sheets setup: create a Google Cloud service account with the Sheets + Drive APIs enabled, download its JSON key file, and share your Sheet with the service account's email address.
+      </p>
+    </section>
+
+    <!-- NOTIFICATIONS ---------------------------------------------------- -->
+    <section id="panel-notifications" class="panel locked">
+      <h2>Notifications <span class="pill ready">Phase 7</span></h2>
+      <p class="subtitle">Alert emails fire automatically when a scored call
+        crosses your thresholds. Test SendGrid delivery below.</p>
+
+      <div class="row"><label>Manager email</label>
+        <input id="pref-manager-email" type="email" placeholder="leave blank to send to your own address" />
+      </div>
+      <div class="row"><label>Low threshold</label>
+        <input id="pref-low" type="number" step="0.1" min="0" max="5" style="max-width: 100px;" />
+        <span style="font-size:11px; color:#8b949e;">→ intervention alert below this score</span>
+      </div>
+      <div class="row"><label>High threshold</label>
+        <input id="pref-high" type="number" step="0.1" min="0" max="5" style="max-width: 100px;" />
+        <span style="font-size:11px; color:#8b949e;">→ coaching alert at/above this score</span>
+      </div>
+      <div class="row"><label>Notify email</label>
+        <input id="pref-notify-email" type="checkbox" style="max-width: 20px;" />
+        <span style="font-size:11px; color:#8b949e;">enable email notifications</span>
+      </div>
+
+      <div class="row"><label>Send test to</label>
+        <input id="test-email-recipient" type="email" placeholder="leave blank to use your logged-in email address" />
+      </div>
+
+      <div class="actions">
+        <button id="btn-save-preferences">Save preferences</button>
+        <button id="btn-test-email" class="secondary">Send test email</button>
+      </div>
+
+      <div id="notifications-status" class="panel-status"></div>
+
+      <p class="hint">
+        Test email: sends a sample INTERVENTION email to
+        <code>manager_email</code> if set, otherwise to your logged-in email
+        address. SendGrid rejects unverified senders — set
+        <code>SENDGRID_FROM_EMAIL</code> in <code>.env</code> to a sender you
+        verified at
+        <a href="https://app.sendgrid.com/settings/sender_auth" target="_blank">sender_auth</a>.
+      </p>
+    </section>
+
+    <!-- HISTORY ---------------------------------------------------------- -->
+    <section class="panel disabled">
+      <h2>History <span class="pill">Phase 9</span></h2>
+      <p class="subtitle">Past analyses for the logged-in user. Coming in Phase 9.</p>
+      <div class="actions"><button disabled>Load history</button></div>
+    </section>
+
+    <!-- LOG -------------------------------------------------------------- -->
+    <section class="panel full">
+      <h2>Request Log</h2>
+      <p class="subtitle">Every API call and response, newest first.
+        <a href="#" id="clear-log">clear</a>
+      </p>
+      <div id="log"></div>
+    </section>
+  </main>
+
+  <script>
+    // -------------------------------------------------------------------
+    // Tiny client for the Sales Genie API. No framework, no build step.
+    // -------------------------------------------------------------------
+    const API = window.location.origin;
+    const TOKEN_KEY = 'sg_access';
+    const REFRESH_KEY = 'sg_refresh';
+
+    const $ = (id) => document.getElementById(id);
+    const log = $('log');
+    const meCard = $('me-card');
+
+    function getToken() { return localStorage.getItem(TOKEN_KEY); }
+    function getRefresh() { return localStorage.getItem(REFRESH_KEY); }
+    function setTokens(pair) {
+      if (pair?.access_token) localStorage.setItem(TOKEN_KEY, pair.access_token);
+      if (pair?.refresh_token) localStorage.setItem(REFRESH_KEY, pair.refresh_token);
+    }
+    function clearTokens() {
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(REFRESH_KEY);
+    }
+
+    function ts() {
+      const d = new Date();
+      return d.toLocaleTimeString('en-GB', { hour12: false }) +
+             '.' + String(d.getMilliseconds()).padStart(3, '0');
+    }
+
+    function setStatus(id, kind, text) {
+      const el = $(id);
+      if (!el) return;
+      el.className = 'panel-status show ' + kind;
+      el.textContent = text;
+    }
+    function clearStatus(id) {
+      const el = $(id);
+      if (el) { el.className = 'panel-status'; el.textContent = ''; }
+    }
+
+    function logRequest(method, url, status, body) {
+      const entry = document.createElement('div');
+      entry.className = 'entry';
+      const cls = status >= 200 && status < 300 ? 'ok' : status === 0 ? 'pending' : 'err';
+      entry.innerHTML =
+        `<span class="ts">${ts()}</span> ` +
+        `<span class="method">${method}</span> ` +
+        `<span class="url">${url}</span> ` +
+        `<span class="${cls}">→ ${status || 'pending'}</span>`;
+      if (body !== undefined) {
+        const b = document.createElement('div');
+        b.className = 'body';
+        b.textContent = typeof body === 'string' ? body : JSON.stringify(body, null, 2);
+        entry.appendChild(b);
+      }
+      log.prepend(entry);
+    }
+
+    async function _fetchJson(method, path, body, authHeader) {
+      const headers = { 'Content-Type': 'application/json' };
+      if (authHeader) headers['Authorization'] = authHeader;
+      const url = `${API}${path}`;
+      const res = await fetch(url, {
+        method, headers,
+        body: body ? JSON.stringify(body) : undefined,
+      });
+      const ct = res.headers.get('content-type') || '';
+      const data = ct.includes('application/json') ? await res.json() : await res.text();
+      return { res, data };
+    }
+
+    async function tryRefresh() {
+      const rt = getRefresh();
+      if (!rt) return false;
+      try {
+        const { res, data } = await _fetchJson('POST', '/auth/refresh', { refresh_token: rt }, null);
+        if (!res.ok) { clearTokens(); return false; }
+        setTokens(data);
+        logRequest('POST', '/auth/refresh', res.status, '(auto, token refreshed)');
+        return true;
+      } catch {
+        clearTokens();
+        return false;
+      }
+    }
+
+    async function api(method, path, body, { auth = false, _retried = false } = {}) {
+      const authHeader = auth && getToken() ? `Bearer ${getToken()}` : null;
+      let res, data, status = 0;
+      try {
+        ({ res, data } = await _fetchJson(method, path, body, authHeader));
+        status = res.status;
+      } catch (err) {
+        logRequest(method, path, 0, `network error: ${err.message}`);
+        throw err;
+      }
+
+      // Auto-refresh on 401 once, then retry the original request
+      if (status === 401 && auth && !_retried && getRefresh()) {
+        const refreshed = await tryRefresh();
+        if (refreshed) return api(method, path, body, { auth, _retried: true });
+        // refresh failed → clear UI to logged-out
+        renderMe(null);
+      }
+
+      logRequest(method, path, status, data);
+      if (!res.ok) {
+        const detail = data?.detail || data;
+        const err = new Error(typeof detail === 'string' ? detail : JSON.stringify(detail));
+        err.status = status; err.data = data;
+        throw err;
+      }
+      return data;
+    }
+
+    // ----- health check -------------------------------------------------
+    async function checkHealth() {
+      const dot = $('health-dot'), txt = $('health-text');
+      try {
+        const r = await fetch(`${API}/health`);
+        if (r.ok) {
+          const d = await r.json();
+          dot.className = 'dot ok';
+          txt.textContent = `backend up — ${d.env}`;
+        } else {
+          dot.className = 'dot err';
+          txt.textContent = `backend HTTP ${r.status}`;
+        }
+      } catch {
+        dot.className = 'dot err';
+        txt.textContent = 'backend unreachable';
+      }
+    }
+
+    // ----- /me + auth banner -------------------------------------------
+    function setAuthBanner(user) {
+      const banner = $('auth-banner');
+      const lockables = ['panel-kb', 'panel-tx', 'panel-analysis', 'panel-integrations', 'panel-notifications'];
+      if (user) {
+        banner.className = 'auth-banner';
+        $('auth-icon').textContent = '✅';
+        $('auth-who').innerHTML =
+          `Logged in as <span class="email">${user.email}</span> · id=${user.id}`;
+        lockables.forEach(id => $(id)?.classList.remove('locked'));
+      } else {
+        banner.className = 'auth-banner logged-out';
+        $('auth-icon').textContent = '⚠️';
+        $('auth-who').textContent =
+          'Not logged in — register or log in below to unlock other panels.';
+        lockables.forEach(id => $(id)?.classList.add('locked'));
+      }
+    }
+
+    function renderMe(user) {
+      if (!user) {
+        meCard.className = 'me-card empty';
+        meCard.textContent = 'Not logged in.';
+        setAuthBanner(null);
+        return;
+      }
+      meCard.className = 'me-card';
+      meCard.innerHTML = Object.entries(user).map(([k, v]) =>
+        `<div class="field"><span class="key">${k}</span><span class="val">${v ?? '—'}</span></div>`
+      ).join('');
+      setAuthBanner(user);
+    }
+
+    async function loadMe() {
+      if (!getToken()) { renderMe(null); refreshKb(); return; }
+      try {
+        const me = await api('GET', '/auth/me', null, { auth: true });
+        renderMe(me);
+        refreshKb();
+      } catch (e) {
+        if (e.status === 401) { clearTokens(); renderMe(null); refreshKb(); }
+      }
+    }
+
+    // ----- auth button handlers ----------------------------------------
+    $('btn-register').onclick = async () => {
+      clearStatus('auth-status');
+      const body = {
+        email: $('auth-email').value.trim(),
+        password: $('auth-password').value,
+        full_name: $('auth-name').value.trim(),
+      };
+      try {
+        const pair = await api('POST', '/auth/register', body);
+        setTokens(pair);
+        setStatus('auth-status', 'ok', '✓ registered + logged in');
+        await loadMe();
+      } catch (e) {
+        setStatus('auth-status', 'err', '✗ ' + e.message);
+      }
+    };
+
+    $('btn-login').onclick = async () => {
+      clearStatus('auth-status');
+      const body = {
+        email: $('auth-email').value.trim(),
+        password: $('auth-password').value,
+      };
+      try {
+        const pair = await api('POST', '/auth/login', body);
+        setTokens(pair);
+        setStatus('auth-status', 'ok', '✓ logged in');
+        await loadMe();
+      } catch (e) {
+        setStatus('auth-status', 'err', '✗ ' + e.message);
+      }
+    };
+
+    $('btn-me').onclick = () => loadMe();
+
+    $('btn-refresh').onclick = async () => {
+      const rt = getRefresh();
+      if (!rt) {
+        setStatus('auth-status', 'warn', 'no refresh token in storage');
+        return;
+      }
+      try {
+        const pair = await api('POST', '/auth/refresh', { refresh_token: rt });
+        setTokens(pair);
+        setStatus('auth-status', 'ok', '✓ token refreshed');
+        await loadMe();
+      } catch (e) {
+        setStatus('auth-status', 'err', '✗ ' + e.message);
+      }
+    };
+
+    $('btn-logout').onclick = () => {
+      clearTokens();
+      renderMe(null);
+      setStatus('auth-status', 'info', 'logged out');
+    };
+
+    $('clear-log').onclick = (e) => { e.preventDefault(); log.innerHTML = ''; };
+
+    // ----- Knowledge Base ---------------------------------------------
+    const kbList = $('kb-list');
+    const kbFileInput = $('kb-file');
+    const kbInfo = $('kb-file-info');
+    const btnKbUpload = $('btn-kb-upload');
+
+    function fmtBytes(n) {
+      if (n < 1024) return n + ' B';
+      if (n < 1024 * 1024) return (n / 1024).toFixed(1) + ' KB';
+      return (n / 1024 / 1024).toFixed(2) + ' MB';
+    }
+
+    function updateKbButtonState() {
+      const hasFile = kbFileInput.files.length > 0;
+      const loggedIn = !!getToken();
+      btnKbUpload.disabled = !hasFile || !loggedIn;
+    }
+
+    kbFileInput.onchange = () => {
+      const f = kbFileInput.files[0];
+      if (f) {
+        kbInfo.className = 'file-info has-file';
+        kbInfo.textContent = `${f.name} (${fmtBytes(f.size)})`;
+      } else {
+        kbInfo.className = 'file-info';
+        kbInfo.textContent = 'No file selected.';
+      }
+      updateKbButtonState();
+    };
+
+    function renderKb(payload) {
+      if (!payload || !payload.documents?.length) {
+        kbList.className = 'me-card empty';
+        kbList.textContent = payload ? 'No documents loaded yet.' : 'Log in to see your KB.';
+        return;
+      }
+      kbList.className = 'me-card';
+      kbList.innerHTML = payload.documents.map(d => {
+        const color =
+          d.status === 'ready' ? '#3fb950' :
+          d.status === 'failed' ? '#f85149' :
+          d.status === 'processing' ? '#d29922' : '#8b949e';
+        return `<div class="field" style="display:flex; gap:8px; align-items:center;">
+          <span style="flex:1; color:#e6edf3;">${d.filename}</span>
+          <span style="color:${color}; font-size:11px;">${d.status}</span>
+          <span style="color:#8b949e; font-size:11px;">${d.chunk_count} chunks</span>
+          <button class="secondary" style="padding:2px 8px; font-size:11px;"
+            onclick="deleteKb('${d.id}')">delete</button>
+        </div>`;
+      }).join('') + `<div class="field" style="margin-top:8px; color:#8b949e;">
+        ${payload.total_chunks} total chunks · ${payload.documents.length} document(s)
+      </div>`;
+    }
+
+    async function refreshKb() {
+      if (!getToken()) { renderKb(null); return; }
+      try {
+        const data = await api('GET', '/config/kb/status', null, { auth: true });
+        renderKb(data);
+      } catch (e) { /* logged */ }
+    }
+
+    async function uploadKb() {
+      clearStatus('kb-status');
+      const file = kbFileInput.files[0];
+      if (!file) {
+        setStatus('kb-status', 'warn', 'pick a file first');
+        return;
+      }
+      if (!getToken()) {
+        setStatus('kb-status', 'err', 'log in first');
+        return;
+      }
+      const form = new FormData();
+      form.append('file', file);
+
+      btnKbUpload.disabled = true;
+      btnKbUpload.classList.add('loading');
+      setStatus('kb-status', 'info', `uploading ${file.name}…`);
+
+      try {
+        const res = await fetch(`${API}/config/kb/upload`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${getToken()}` },
+          body: form,
+        });
+        const data = res.headers.get('content-type')?.includes('application/json')
+          ? await res.json() : await res.text();
+        logRequest('POST', '/config/kb/upload', res.status, data);
+
+        if (!res.ok) {
+          const msg = data?.detail || JSON.stringify(data);
+          setStatus('kb-status', 'err', `✗ ${msg}`);
+          return;
+        }
+
+        setStatus('kb-status', 'info', `✓ accepted — embedding ${file.name}…`);
+        kbFileInput.value = '';
+        kbInfo.className = 'file-info';
+        kbInfo.textContent = 'No file selected.';
+        await refreshKb();
+
+        // Poll while still processing
+        for (let i = 0; i < 30; i++) {
+          await new Promise(r => setTimeout(r, 2000));
+          const fresh = await api('GET', '/config/kb/status', null, { auth: true });
+          renderKb(fresh);
+          const stillBusy = fresh.documents.some(d =>
+            d.status === 'pending' || d.status === 'processing');
+          if (!stillBusy) {
+            setStatus('kb-status', 'ok', `✓ all documents ready`);
+            break;
+          }
+        }
+      } catch (e) {
+        setStatus('kb-status', 'err', `✗ ${e.message}`);
+      } finally {
+        btnKbUpload.classList.remove('loading');
+        updateKbButtonState();
+      }
+    }
+
+    window.deleteKb = async (docId) => {
+      if (!confirm('Delete this KB document and its embeddings?')) return;
+      try {
+        await api('DELETE', `/config/kb/${docId}`, null, { auth: true });
+        setStatus('kb-status', 'info', 'document deleted');
+        await refreshKb();
+      } catch (e) {
+        setStatus('kb-status', 'err', '✗ ' + e.message);
+      }
+    };
+
+    $('btn-kb-upload').onclick = uploadKb;
+    $('btn-kb-refresh').onclick = refreshKb;
+
+    // ----- Transcription ----------------------------------------------
+    const txResult = $('tx-result');
+    const txFileInput = $('tx-file');
+    const txInfo = $('tx-file-info');
+    const btnTxUpload = $('btn-tx-upload');
+
+    function updateTxButtonState() {
+      const hasFile = txFileInput.files.length > 0;
+      const loggedIn = !!getToken();
+      btnTxUpload.disabled = !hasFile || !loggedIn;
+    }
+
+    txFileInput.onchange = () => {
+      const f = txFileInput.files[0];
+      if (f) {
+        txInfo.className = 'file-info has-file';
+        txInfo.textContent = `${f.name} (${fmtBytes(f.size)})`;
+      } else {
+        txInfo.className = 'file-info';
+        txInfo.textContent = 'No file selected.';
+      }
+      updateTxButtonState();
+    };
+
+    // Cache the last-uploaded file so we can re-transcribe with a different Rep label
+    let lastTxFile = null;
+    let lastTxResult = null;
+
+    function renderTranscript(r) {
+      lastTxResult = r;
+      if (!r) {
+        txResult.className = 'me-card empty';
+        txResult.textContent = 'No transcript yet.';
+        return;
+      }
+      txResult.className = 'me-card';
+
+      const rawSpeakers = Object.keys(r.role_map);
+      const segmented = r.raw_speaker_count > r.speaker_count;
+      const conf = r.rep_detection_confidence ?? 0;
+      const lowConfidence = !r.rep_detection_overridden && conf < 0.3;
+
+      // Speaker-by-speaker role mapping with the signal breakdown (so the user
+      // can see WHY each speaker was scored that way and easily override)
+      const roleRows = rawSpeakers.map(s => {
+        const role = r.role_map[s];
+        const color = role === 'Rep' ? '#3fb950' : '#d29922';
+        const isRep = s === r.rep_speaker_label;
+        const sig = (r.rep_detection_signals && r.rep_detection_signals[s]) || {};
+        const sigStr = Object.keys(sig).length
+          ? `opening:${sig.opening_hits||0} · sales-vocab:${sig.sales_vocab_hits||0} · questions:${sig.questions||0}${sig.first_speaker ? ' · first' : ''}`
+          : '';
+        const swapBtn = isRep ? '' :
+          `<button class="secondary" style="padding:1px 6px; font-size:10px;"
+            onclick="reprocessWithRep('${s}')">use as Rep</button>`;
+        return `<div class="field" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+          <span style="font-family:var(--mono); min-width:80px;">speaker ${s}</span>
+          <span style="color:${color}; font-size:11px;">→ ${role}${isRep ? ' (auto)' : ''}</span>
+          <span style="color:#6e7681; font-size:10px; font-family:var(--mono); flex:1;">${sigStr}</span>
+          ${swapBtn}
+        </div>`;
+      }).join('');
+
+      // Show segmentation note OR a low-confidence warning (whichever applies)
+      let warning = '';
+      if (r.rep_detection_overridden) {
+        warning = `
+          <div class="panel-status show info" style="margin-top:8px;">
+            ℹ Rep assigned manually (you clicked "use as Rep" on speaker ${r.rep_speaker_label}).
+          </div>`;
+      } else if (lowConfidence) {
+        warning = `
+          <div class="panel-status show warn" style="margin-top:8px;">
+            ⚠️ Low confidence (${(conf*100).toFixed(0)}%) — the signal scores
+            are close. This is common on demo / technical calls where the
+            prospect asks many questions. Verify the Rep assignment below and
+            click "use as Rep" beside the correct speaker if it's wrong.
+          </div>`;
+      } else if (segmented) {
+        warning = `
+          <div class="panel-status show info" style="margin-top:8px;">
+            ℹ AssemblyAI detected ${r.raw_speaker_count} raw speakers but the
+            call has 2 parties. Non-Rep speakers merged into Prospect. Detection
+            confidence: ${(conf*100).toFixed(0)}%.
+          </div>`;
+      }
+
+      txResult.innerHTML = `
+        <div class="field"><span class="key">utterances</span><span class="val">${r.utterance_count}</span></div>
+        <div class="field"><span class="key">raw speakers</span><span class="val">${r.raw_speaker_count}</span></div>
+        <div class="field"><span class="key">logical roles</span><span class="val">${r.speaker_count} (Rep + Prospect)</span></div>
+        <div class="field"><span class="key">talk_ratio_rep</span><span class="val">${r.talk_ratio_rep}%</span></div>
+        <div class="field"><span class="key">talk_ratio_prospect</span><span class="val">${r.talk_ratio_prospect}%</span></div>
+        <div class="field"><span class="key">rep questions</span><span class="val">${r.question_count}</span></div>
+
+        <div class="field" style="margin-top:8px; border-top:1px solid #30363d; padding-top:8px;">
+          <span class="key" style="width:auto;">role mapping</span>
+        </div>
+        ${roleRows}
+        ${warning}
+
+        <div class="field" style="margin-top:8px; border-top:1px solid #30363d; padding-top:8px;">
+          <span class="key" style="width:auto;">formatted_text</span>
+        </div>
+        <div class="field" style="white-space:pre-wrap; font-size:11px; max-height:240px; overflow-y:auto;
+             background:#0e1116; padding:8px; border-radius:4px;">${
+          r.formatted_text.replace(/</g, '&lt;')
+        }</div>
+
+        <div class="actions" style="margin-top:8px;">
+          <button class="secondary" id="btn-tx-to-analysis">Send to Call Analysis</button>
+        </div>
+      `;
+      $('btn-tx-to-analysis').onclick = () => {
+        const ta = $('analysis-transcript');
+        if (ta) {
+          ta.value = r.formatted_text;
+          setStatus('tx-status', 'info', '✓ transcript pasted into Call Analysis');
+        }
+      };
+    }
+
+    // Re-process the cached audio with an explicit rep speaker hint.
+    window.reprocessWithRep = async (speakerLabel) => {
+      if (!lastTxFile) {
+        setStatus('tx-status', 'warn',
+          'original audio not in memory — pick the file again and re-transcribe');
+        return;
+      }
+      const form = new FormData();
+      form.append('file', lastTxFile);
+      form.append('rep_speaker', speakerLabel);
+      btnTxUpload.disabled = true;
+      setStatus('tx-status', 'info', `re-transcribing with ${speakerLabel} as Rep…`);
+      try {
+        const res = await fetch(`${API}/transcription/file`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${getToken()}` },
+          body: form,
+        });
+        const data = await res.json();
+        logRequest('POST', '/transcription/file?rep_speaker=' + speakerLabel, res.status,
+          res.ok ? `✓ rep=${data.rep_speaker_label}` : data);
+        if (res.ok) {
+          renderTranscript(data);
+          setStatus('tx-status', 'ok', `✓ re-processed with ${speakerLabel} as Rep`);
+        } else {
+          setStatus('tx-status', 'err', '✗ ' + (data?.detail || 'unknown'));
+        }
+      } catch (e) {
+        setStatus('tx-status', 'err', '✗ ' + e.message);
+      } finally {
+        btnTxUpload.disabled = false;
+        updateTxButtonState();
+      }
+    };
+
+    async function transcribeAudio() {
+      clearStatus('tx-status');
+      const file = txFileInput.files[0];
+      if (!file) {
+        setStatus('tx-status', 'warn', 'pick an audio file first');
+        return;
+      }
+      if (!getToken()) {
+        setStatus('tx-status', 'err', 'log in first');
+        return;
+      }
+      const form = new FormData();
+      form.append('file', file);
+
+      btnTxUpload.disabled = true;
+      btnTxUpload.classList.add('loading');
+      setStatus('tx-status', 'info',
+        `uploading ${file.name} (${fmtBytes(file.size)}) — this may take 20–60s…`);
+
+      // Cache the File object so the user can re-process with a different
+      // rep_speaker hint without re-picking the file or paying for another
+      // AssemblyAI transcription. (We still re-POST it; backend re-uploads
+      // to AssemblyAI — could be optimized later with a transcript_id cache.)
+      lastTxFile = file;
+
+      try {
+        const res = await fetch(`${API}/transcription/file`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${getToken()}` },
+          body: form,
+        });
+        const data = res.headers.get('content-type')?.includes('application/json')
+          ? await res.json() : await res.text();
+        logRequest('POST', '/transcription/file', res.status, data);
+
+        if (!res.ok) {
+          setStatus('tx-status', 'err', '✗ ' + (data?.detail || JSON.stringify(data)));
+          return;
+        }
+        setStatus('tx-status', 'ok',
+          `✓ ${data.utterance_count} utterances · ${data.raw_speaker_count} raw speakers → ${data.speaker_count} roles`);
+        renderTranscript(data);
+        // Keep file in the picker so user can see what was transcribed
+        txInfo.className = 'file-info has-file';
+        txInfo.textContent = `${file.name} (${fmtBytes(file.size)}) — cached for re-processing`;
+      } catch (e) {
+        setStatus('tx-status', 'err', '✗ ' + e.message);
+      } finally {
+        btnTxUpload.classList.remove('loading');
+        updateTxButtonState();
+      }
+    }
+
+    $('btn-tx-upload').onclick = transcribeAudio;
+
+    // ----- Call Analysis ----------------------------------------------
+    const analysisResult = $('analysis-result');
+    const btnAnalyze = $('btn-analyze');
+
+    function bandColor(band) {
+      const b = (band || '').toUpperCase();
+      if (b.includes('EXCELLENT')) return '#3fb950';
+      if (b.includes('SOLID')) return '#56d364';
+      if (b.includes('MIXED')) return '#d29922';
+      if (b.includes('INTERVENTION')) return '#f85149';
+      return '#8b949e';
+    }
+    function alertColor(level) {
+      return level === 'intervention' ? '#f85149'
+        : level === 'coaching' ? '#3fb950'
+        : '#8b949e';
+    }
+
+    function renderAnalysis(r) {
+      if (!r) {
+        analysisResult.className = 'me-card empty';
+        analysisResult.textContent = 'No analysis yet.';
+        return;
+      }
+      analysisResult.className = 'me-card';
+      const dims = (r.dimension_scores || []).map(d => {
+        const pct = Math.max(0, Math.min(100, (d.score / (d.max_score || 5)) * 100));
+        return `
+          <div class="field" style="display:flex; align-items:center; gap:8px;">
+            <span style="flex:1; font-family:var(--mono); font-size:12px;">${d.dimension}</span>
+            <span style="font-family:var(--mono); color:#e6edf3;">${d.score.toFixed(1)} / ${d.max_score || 5}</span>
+          </div>
+          <div style="height:4px; background:#0e1116; border-radius:2px; margin-bottom:6px;">
+            <div style="height:100%; width:${pct}%; background:#2f81f7; border-radius:2px;"></div>
+          </div>
+          ${d.evidence?.length ? `<div style="font-size:10px; color:#8b949e; margin-bottom:8px;">
+            <strong>Evidence:</strong> ${d.evidence.slice(0, 2).map(e => `"${e.replace(/</g, '&lt;')}"`).join(' · ')}
+          </div>` : ''}
+        `;
+      }).join('');
+
+      const list = (items, color) => (items || []).map(s =>
+        `<div style="margin-bottom:4px; padding-left:16px; position:relative; font-size:12px;">
+          <span style="position:absolute; left:0; color:${color};">•</span>
+          ${s.replace(/</g, '&lt;')}
+        </div>`).join('');
+
+      const risks = (r.loss_risk_categories || []).map(c =>
+        `<span style="display:inline-block; padding:2px 8px; margin:2px;
+                background:rgba(248,81,73,0.15); color:#f85149; border-radius:10px;
+                font-size:10px; font-family:var(--mono);">${c}</span>`).join('');
+
+      const esc = (s) => String(s ?? '').replace(/</g, '&lt;');
+      const section = (title, color, body) =>
+        body ? `<div style="border-top:1px solid #30363d; padding-top:12px; margin-top:8px;">
+          <div style="color:${color}; font-size:11px; margin-bottom:6px;">${title}</div>
+          ${body}
+        </div>` : '';
+
+      // Objections: list of {quote, category, was_addressed, how_handled}
+      const objections = (r.objections || []).map(o =>
+        `<div style="margin-bottom:6px; padding-left:16px; position:relative; font-size:11px;">
+          <span style="position:absolute; left:0;">⚠️</span>
+          <span style="background:#1f262e; padding:1px 6px; border-radius:8px; font-family:var(--mono); font-size:10px; color:#d29922;">${esc(o.category)}</span>
+          <span style="color:${o.was_addressed ? '#3fb950' : '#f85149'}; font-size:10px; margin-left:4px;">${o.was_addressed ? '✓ addressed' : '✗ unaddressed'}</span>
+          <div style="margin-top:2px; color:#e6edf3; font-style:italic;">"${esc(o.quote)}"</div>
+          ${o.how_handled ? `<div style="color:#8b949e; font-size:10px;">→ ${esc(o.how_handled)}</div>` : ''}
+        </div>`).join('');
+
+      // Buying signals: list of {quote, category, strength}
+      const buyingSignals = (r.buying_signals || []).map(s => {
+        const strengthColor = s.strength === 'strong' ? '#3fb950' : s.strength === 'medium' ? '#d29922' : '#8b949e';
+        return `<div style="margin-bottom:6px; padding-left:16px; position:relative; font-size:11px;">
+          <span style="position:absolute; left:0;">💡</span>
+          <span style="background:#1f262e; padding:1px 6px; border-radius:8px; font-family:var(--mono); font-size:10px; color:#3fb950;">${esc(s.category)}</span>
+          <span style="color:${strengthColor}; font-size:10px; margin-left:4px;">${esc(s.strength)}</span>
+          <div style="margin-top:2px; color:#e6edf3; font-style:italic;">"${esc(s.quote)}"</div>
+        </div>`;
+      }).join('');
+
+      // Competitors: list of {name, context_quote, sentiment}
+      const competitors = (r.competitors_mentioned || []).map(c => {
+        const sentColor = c.sentiment === 'negative' ? '#f85149' : c.sentiment === 'positive' ? '#3fb950' : '#8b949e';
+        return `<div style="margin-bottom:6px; font-size:11px;">
+          <span style="color:#e6edf3; font-weight:600;">${esc(c.name)}</span>
+          <span style="color:${sentColor}; font-size:10px; margin-left:4px;">${esc(c.sentiment)}</span>
+          <div style="color:#8b949e; font-style:italic; font-size:10px;">"${esc(c.context_quote)}"</div>
+        </div>`;
+      }).join('');
+
+      // Key quotes
+      const keyQuotes = (r.key_quotes || []).map(k => {
+        const color = k.speaker === 'Rep' ? '#2f81f7' : '#d29922';
+        return `<div style="margin-bottom:8px; padding-left:8px; border-left:2px solid ${color}; font-size:11px;">
+          <span style="color:${color}; font-weight:600; font-size:10px;">${esc(k.speaker)}</span>
+          <div style="color:#e6edf3; font-style:italic; margin-top:2px;">"${esc(k.quote)}"</div>
+          <div style="color:#8b949e; font-size:10px; margin-top:2px;">→ ${esc(k.why_notable)}</div>
+        </div>`;
+      }).join('');
+
+      // Summary bullets
+      const summaryBullets = (r.call_summary_bullets || []).map(b =>
+        `<div style="margin-bottom:4px; padding-left:16px; position:relative; font-size:12px;">
+          <span style="position:absolute; left:0; color:#8b949e;">•</span>
+          ${esc(b)}
+        </div>`).join('');
+
+      // Next-step structured block
+      const nextStepBlock = (r.next_step_action || r.next_step_owner) ? `
+        <div style="font-size:11px; padding:8px; background:#0e1116; border-radius:4px;">
+          <div style="margin-bottom:4px;">
+            <span style="color:#8b949e;">action:</span> ${esc(r.next_step_action) || '—'}
+          </div>
+          <div>
+            <span style="color:#8b949e;">owner:</span> ${esc(r.next_step_owner) || '—'}
+          </div>
+        </div>` : '';
+
+      // Header: lead with the band (stable across runs) — numeric score is
+      // shown smaller below since it varies by ~±0.3-0.5 between runs on the
+      // same transcript (normal LLM behavior). The band label aggregates that
+      // noise into a coaching-grade bucket.
+      analysisResult.innerHTML = `
+        ${r.call_title ? `<div style="font-size:14px; font-weight:600; color:#e6edf3; margin-bottom:2px;">${esc(r.call_title)}</div>` : ''}
+        ${r.prospect_name ? `<div style="font-size:11px; color:#8b949e; margin-bottom:12px;">with <span style="color:#e6edf3;">${esc(r.prospect_name)}</span></div>` : ''}
+        <div style="display:flex; align-items:center; gap:14px; margin-bottom:14px;">
+          <div style="flex:1;">
+            <div style="font-size:22px; font-weight:700; color:${bandColor(r.score_band)}; letter-spacing:0.3px;">
+              ${esc(r.score_band) || '—'}
+            </div>
+            <div style="display:flex; align-items:baseline; gap:6px; margin-top:2px;">
+              <span style="color:#8b949e; font-size:11px;">score</span>
+              <span style="font-family:var(--mono); font-size:13px; color:#e6edf3;">${r.overall_score.toFixed(2)}</span>
+              <span style="color:#6e7681; font-size:10px;" title="LLM scoring varies ±0.3 between identical runs — the band above is more stable">±0.3 / 5</span>
+            </div>
+            <div style="font-size:11px; color:#8b949e; margin-top:6px;">
+              ${esc(r.call_type) || 'Other'} · ${esc(r.next_step_quality) || '—'} · ${esc(r.methodology_id) || 'GENIE_v1'}
+            </div>
+          </div>
+          <div style="color:${alertColor(r.alert_level)}; font-size:11px; font-family:var(--mono);
+                      padding:4px 10px; border-radius:12px; background:${alertColor(r.alert_level)}22;">
+            alert: ${esc(r.alert_level)}
+          </div>
+        </div>
+
+        ${r.call_type_justification ? `
+        <div style="font-size:11px; color:#8b949e; padding:6px 10px; background:#0e1116; border-radius:4px; margin-bottom:8px;">
+          <em>${esc(r.call_type_justification)}</em>
+        </div>` : ''}
+
+        ${section('SCORE JUSTIFICATION', '#8b949e',
+          r.score_justification ? `<div style="font-size:12px; line-height:1.5;">${esc(r.score_justification)}</div>` : '')}
+
+        ${section('DIMENSIONS', '#8b949e',
+          dims || '<div style="color:#8b949e; font-size:12px;">no dimensions returned</div>')}
+
+        ${section('STRENGTHS', '#3fb950',
+          list(r.strengths, '#3fb950') || '<div style="color:#8b949e; font-size:12px;">none</div>')}
+
+        ${section('IMPROVEMENTS', '#d29922',
+          list(r.improvements, '#d29922') || '<div style="color:#8b949e; font-size:12px;">none</div>')}
+
+        ${section('OBJECTIONS', '#f85149', objections)}
+        ${section('BUYING SIGNALS', '#3fb950', buyingSignals)}
+        ${section('COMPETITORS MENTIONED', '#d29922', competitors)}
+        ${section('LOSS RISKS', '#f85149', risks)}
+
+        ${section('NEXT STEP', '#2f81f7', nextStepBlock)}
+        ${section('CALL SUMMARY', '#8b949e', summaryBullets)}
+        ${section('KEY QUOTES', '#2f81f7', keyQuotes)}
+
+        ${section('AI SUMMARY', '#8b949e',
+          `<div style="font-size:12px; line-height:1.5; white-space:pre-wrap;">${esc(r.ai_summary)}</div>`)}
+
+        ${section('CALL NOTES', '#8b949e',
+          `<div style="font-size:12px; line-height:1.5; font-family:var(--mono);">${esc(r.call_notes)}</div>`)}
+
+        ${section('CONNECTOR DISPATCH', '#2f81f7',
+          (r.connector_results || []).map(c => {
+            const okColor = c.ok ? '#3fb950' : '#f85149';
+            const link = c.external_url
+              ? `<a href="${esc(c.external_url)}" target="_blank" style="color:#2f81f7; font-size:11px;">open ↗</a>`
+              : '';
+            return `<div style="display:flex; align-items:center; gap:8px; font-size:11px; margin-bottom:4px;">
+              <span style="font-family:var(--mono); min-width:80px;">${esc(c.connector)}</span>
+              <span style="color:${okColor};">${c.ok ? '✓ ok' : '✗ ' + esc(c.error || 'failed')}</span>
+              <span style="flex:1; color:#8b949e; font-size:10px;">${esc(c.detail || '')}</span>
+              ${link}
+            </div>`;
+          }).join('')
+        )}
+
+        <div style="border-top:1px solid #30363d; padding-top:8px; margin-top:8px; font-size:10px; color:#6e7681;">
+          analysis_id: ${r.analysis_id || '—'} · call_id: ${r.call_id}
+        </div>
+      `;
+    }
+
+    async function runAnalysis() {
+      clearStatus('analysis-status');
+      const transcript = $('analysis-transcript').value.trim();
+      if (transcript.length < 10) {
+        setStatus('analysis-status', 'warn', 'paste a transcript first (min 10 chars)');
+        return;
+      }
+      if (!getToken()) {
+        setStatus('analysis-status', 'err', 'log in first');
+        return;
+      }
+      // Pull the last transcription's metrics if we have them
+      const body = { transcript, platform: 'manual' };
+      if (lastTxResult) {
+        body.talk_ratio_rep = lastTxResult.talk_ratio_rep;
+        body.talk_ratio_prospect = lastTxResult.talk_ratio_prospect;
+        body.question_count = lastTxResult.question_count;
+        body.speaker_count = lastTxResult.speaker_count;
+      }
+
+      btnAnalyze.disabled = true;
+      btnAnalyze.classList.add('loading');
+      setStatus('analysis-status', 'info',
+        'running LangGraph agent (preprocess → retrieve_kb → classify → score → coach → alert → write_db)…');
+
+      try {
+        const data = await api('POST', '/analysis/analyze', body, { auth: true });
+        if (data.error) {
+          setStatus('analysis-status', 'err', '✗ ' + data.error);
+        } else {
+          setStatus('analysis-status', 'ok',
+            `✓ scored ${data.overall_score.toFixed(2)}/5 · ${data.score_band} · ${data.dimension_scores.length} dimensions · alert=${data.alert_level}`);
+        }
+        renderAnalysis(data);
+      } catch (e) {
+        setStatus('analysis-status', 'err', '✗ ' + e.message);
+      } finally {
+        btnAnalyze.classList.remove('loading');
+        btnAnalyze.disabled = false;
+      }
+    }
+
+    $('btn-analyze').onclick = runAnalysis;
+
+    // ----- Async analysis (Celery submit + poll) ----------------------
+    function analysisBody() {
+      const transcript = $('analysis-transcript').value.trim();
+      const body = { transcript, platform: 'manual' };
+      if (lastTxResult) {
+        body.talk_ratio_rep = lastTxResult.talk_ratio_rep;
+        body.talk_ratio_prospect = lastTxResult.talk_ratio_prospect;
+        body.question_count = lastTxResult.question_count;
+        body.speaker_count = lastTxResult.speaker_count;
+      }
+      return body;
+    }
+
+    async function runAnalysisAsync() {
+      clearStatus('analysis-status');
+      const transcript = $('analysis-transcript').value.trim();
+      if (transcript.length < 10) {
+        setStatus('analysis-status', 'warn', 'paste a transcript first (min 10 chars)');
+        return;
+      }
+      if (!getToken()) { setStatus('analysis-status', 'err', 'log in first'); return; }
+
+      const btn = $('btn-analyze-async');
+      btn.disabled = true; btn.classList.add('loading');
+      setStatus('analysis-status', 'info', 'submitting job to background worker…');
+
+      try {
+        const sub = await api('POST', '/analysis/submit', analysisBody(), { auth: true });
+        const jobId = sub.job_id;
+        setStatus('analysis-status', 'info', `job ${jobId.slice(0,8)}… queued — polling`);
+
+        // Poll every 2s up to ~2 min
+        for (let i = 0; i < 60; i++) {
+          await new Promise(r => setTimeout(r, 2000));
+          let st;
+          try {
+            st = await api('GET', `/analysis/job/${jobId}`, null, { auth: true });
+          } catch (e) {
+            if (e.status === 404) { setStatus('analysis-status', 'err', 'job expired'); break; }
+            throw e;
+          }
+          setStatus('analysis-status', 'info',
+            `${st.state} · ${st.progress}% · ${st.step}`);
+          if (st.state === 'done') {
+            renderAnalysis(st.result);
+            setStatus('analysis-status', 'ok',
+              `✓ done — ${(st.result.overall_score||0).toFixed(2)}/5 · ${st.result.score_band} · alert=${st.result.alert_level}`);
+            break;
+          }
+          if (st.state === 'failed') {
+            setStatus('analysis-status', 'err', '✗ ' + (st.error || 'job failed'));
+            if (st.result) renderAnalysis(st.result);
+            break;
+          }
+        }
+      } catch (e) {
+        setStatus('analysis-status', 'err', '✗ ' + e.message);
+      } finally {
+        btn.classList.remove('loading'); btn.disabled = false;
+      }
+    }
+
+    $('btn-analyze-async').onclick = runAnalysisAsync;
+
+    // ----- Integrations -----------------------------------------------
+    const integrationsStatus = $('integrations-status');
+    const integrationsMessage = $('integrations-message');
+
+    function renderIntegrationsStatus(s) {
+      if (!s) {
+        integrationsStatus.className = 'me-card empty';
+        integrationsStatus.textContent = 'Log in to see integrations status.';
+        return;
+      }
+      integrationsStatus.className = 'me-card';
+      const pill = (label, on) =>
+        `<span style="display:inline-block; padding:2px 10px; margin:2px; border-radius:10px;
+          font-size:11px; font-family:var(--mono);
+          background:${on ? 'rgba(63,185,80,0.15)' : 'rgba(139,148,158,0.1)'};
+          color:${on ? '#3fb950' : '#8b949e'};
+          border:1px solid ${on ? 'rgba(63,185,80,0.4)' : '#30363d'};">
+          ${label}: ${on ? '✓ ready' : '— not set'}</span>`;
+      integrationsStatus.innerHTML = `
+        <div style="margin-bottom:8px;">
+          ${pill('Notion token', s.notion_configured)}
+          ${pill('Notion DB ID', s.notion_database_id_set)}
+          ${pill('Sheets ID', s.sheets_id_set)}
+          ${pill('Sheets creds', s.sheets_configured)}
+        </div>
+        <div style="font-size:11px; color:#8b949e; font-family:var(--mono);">
+          active connectors: ${(s.active_connectors || []).join(', ') || '(none)'}
+        </div>
+      `;
+    }
+
+    async function refreshIntegrations() {
+      if (!getToken()) { renderIntegrationsStatus(null); return; }
+      try {
+        const s = await api('GET', '/config/integrations', null, { auth: true });
+        renderIntegrationsStatus(s);
+      } catch (e) { /* logged */ }
+    }
+
+    function clearIntegrationsMessage() {
+      integrationsMessage.className = 'panel-status';
+      integrationsMessage.textContent = '';
+    }
+
+    async function saveIntegrations(body, label) {
+      clearIntegrationsMessage();
+      try {
+        const r = await api('POST', '/config/integrations', body, { auth: true });
+        renderIntegrationsStatus(r);
+        integrationsMessage.className = 'panel-status show ok';
+        integrationsMessage.textContent = `✓ ${label} saved`;
+      } catch (e) {
+        integrationsMessage.className = 'panel-status show err';
+        integrationsMessage.textContent = '✗ ' + e.message;
+      }
+    }
+
+    async function testIntegration(connector) {
+      clearIntegrationsMessage();
+      try {
+        const r = await api('POST', `/config/integrations/test/${connector}`, null, { auth: true });
+        integrationsMessage.className = 'panel-status show ' + (r.ok ? 'ok' : 'err');
+        integrationsMessage.textContent =
+          `${r.ok ? '✓' : '✗'} ${connector}: ${r.detail || r.error || '(no detail)'}`;
+      } catch (e) {
+        integrationsMessage.className = 'panel-status show err';
+        integrationsMessage.textContent = '✗ ' + e.message;
+      }
+    }
+
+    $('btn-save-notion').onclick = () => saveIntegrations({
+      notion_token: $('notion-token').value,
+      notion_database_id: $('notion-db-id').value,
+    }, 'Notion');
+    $('btn-test-notion').onclick = () => testIntegration('notion');
+
+    $('btn-save-sheets').onclick = () => saveIntegrations({
+      sheets_id: $('sheets-id').value,
+      sheets_credentials: $('sheets-creds').value,
+    }, 'Sheets');
+    $('btn-test-sheets').onclick = () => testIntegration('sheets');
+
+    // ----- Notification preferences + test email ----------------------
+    const notificationsStatus = $('notifications-status');
+
+    function setNotifStatus(kind, text) {
+      notificationsStatus.className = 'panel-status show ' + kind;
+      notificationsStatus.textContent = text;
+    }
+    function clearNotifStatus() {
+      notificationsStatus.className = 'panel-status';
+      notificationsStatus.textContent = '';
+    }
+
+    async function loadPreferences() {
+      if (!getToken()) return;
+      try {
+        const p = await api('GET', '/config/preferences', null, { auth: true });
+        $('pref-manager-email').value = p.manager_email || '';
+        $('pref-low').value = p.alert_threshold_low ?? 2.5;
+        $('pref-high').value = p.alert_threshold_high ?? 4.0;
+        $('pref-notify-email').checked = !!p.notify_email;
+      } catch (e) { /* logged */ }
+    }
+
+    async function savePreferences() {
+      clearNotifStatus();
+      const body = {
+        manager_email: $('pref-manager-email').value.trim(),
+        alert_threshold_low: parseFloat($('pref-low').value),
+        alert_threshold_high: parseFloat($('pref-high').value),
+        notify_email: $('pref-notify-email').checked,
+      };
+      try {
+        const p = await api('PUT', '/config/preferences', body, { auth: true });
+        setNotifStatus('ok',
+          `✓ saved — thresholds ${p.alert_threshold_low}/${p.alert_threshold_high}, ` +
+          `notify_email=${p.notify_email}, manager=${p.manager_email || '(none)'}`);
+        await loadMe();  // refresh /me card to show new manager_email + thresholds
+      } catch (e) {
+        setNotifStatus('err', '✗ ' + e.message);
+      }
+    }
+
+    async function sendTestEmail() {
+      clearNotifStatus();
+      if (!getToken()) { setNotifStatus('err', 'log in first'); return; }
+
+      // Prefer explicit recipient, fall back to logged-in email
+      const explicit = ($('test-email-recipient').value || '').trim();
+      const body = explicit ? { to_email: explicit } : {};
+      const target = explicit || '(your logged-in email)';
+      setNotifStatus('info', `sending test email to ${target} via SendGrid…`);
+
+      try {
+        const r = await api('POST', '/notifications/test/email', body, { auth: true });
+        if (r.ok) {
+          setNotifStatus('ok', `✓ sent to ${r.recipient} — check inbox (${r.detail})`);
+        } else {
+          setNotifStatus('err', `✗ ${r.error}`);
+        }
+      } catch (e) {
+        setNotifStatus('err', '✗ ' + e.message);
+      }
+    }
+
+    $('btn-save-preferences').onclick = savePreferences;
+    $('btn-test-email').onclick = sendTestEmail;
+
+    // Auto-refresh integrations + preferences whenever auth state changes
+    const _origLoadMe = loadMe;
+    loadMe = async () => { await _origLoadMe(); refreshIntegrations(); loadPreferences(); };
+
+    // ----- boot --------------------------------------------------------
+    checkHealth();
+    // Re-check backend health every 5s so a momentary outage self-recovers
+    setInterval(checkHealth, 5000);
+
+    loadMe();
+    updateKbButtonState();
+    updateTxButtonState();
+  </script>
+</body>
+</html>
