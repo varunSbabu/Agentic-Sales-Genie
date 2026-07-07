@@ -47,18 +47,23 @@ class AlertEmailPayload:
     score_justification: str = ""
     next_step_quality: str = ""
 
-    # Short narrative — a 1-2 sentence excerpt is rendered in the email
+    # Narrative
     ai_summary: str = ""
+    call_notes: str = ""
+    call_summary_bullets: list[str] = field(default_factory=list)
 
-    # At-a-glance count (full dimension detail lives in the report)
+    # Full detail for the professional overview
+    dimension_scores: list[dict] = field(default_factory=list)
     dimension_scores_count: int = 0
+    key_quotes: list[dict] = field(default_factory=list)
 
-    # Reasoning inputs — only 3 max rendered
+    # Reasoning inputs
     strengths: list[str] = field(default_factory=list)
     improvements: list[str] = field(default_factory=list)
     loss_risk_categories: list[str] = field(default_factory=list)
     objections: list[dict] = field(default_factory=list)
     buying_signals: list[dict] = field(default_factory=list)
+    competitors_mentioned: list[dict] = field(default_factory=list)
 
     # Next step
     next_step_action: str = ""
@@ -472,17 +477,180 @@ class EmailNotifier:
 
 
 # ---------------------------------------------------------------------------
+# Professional call-analysis overview — sent for EVERY analyzed call.
+# The banner + recommendation adapt to alert_level; the body is the same rich
+# overview (summary, dimensions, signals, objections, next steps, key quotes).
+# ---------------------------------------------------------------------------
+_REC_RED = "background:#FDECEE; border-left:4px solid #B00020; padding:12px 16px; margin:16px 0; color:#202020;"
+_REC_GREEN = "background:#EAF5EE; border-left:4px solid #1B6B3A; padding:12px 16px; margin:16px 0; color:#202020;"
+_REC_BLUE = "background:#eef4fe; border-left:4px solid #2f81f7; padding:12px 16px; margin:16px 0; color:#202020;"
+_BANNER_BLUE = "background:linear-gradient(135deg,#2f81f7,#7c3aed); color:#ffffff; padding:16px 24px; font-size:18px; font-weight:600;"
+
+_LEVEL_THEME = {
+    "intervention": {"banner": S["banner_red"], "accent": "#B00020", "label": "🚨 Intervention Required", "rec_style": _REC_RED},
+    "coaching":     {"banner": S["banner_green"], "accent": "#1B6B3A", "label": "⭐ Coaching Example", "rec_style": _REC_GREEN},
+    "none":         {"banner": _BANNER_BLUE, "accent": "#2f81f7", "label": "📊 Call Analysis", "rec_style": _REC_BLUE},
+}
+
+
+def _dimensions_table(p: AlertEmailPayload) -> str:
+    if not p.dimension_scores:
+        return ""
+    rows = ""
+    for d in p.dimension_scores:
+        name = _e(d.get("dimension") or "?")
+        score = float(d.get("score") or 0)
+        mx = float(d.get("max_score") or 5)
+        pct = max(0, min(100, (score / mx * 100) if mx else 0))
+        color = "#1B6B3A" if score >= 4 else ("#B8860B" if score >= 2.5 else "#B00020")
+        rows += (
+            f'<tr><td style="padding:6px 0; font-size:13px; color:#333;">{name}</td>'
+            f'<td style="padding:6px 0; width:120px;">'
+            f'<div style="background:#eee; border-radius:6px; height:8px; width:100px; display:inline-block; vertical-align:middle;">'
+            f'<div style="background:{color}; width:{pct:.0f}%; height:8px; border-radius:6px;"></div></div></td>'
+            f'<td style="padding:6px 0; text-align:right; font-weight:600; color:{color}; width:60px;">{score:.1f}/{mx:.0f}</td></tr>'
+        )
+    return f'<h3 style="{S["h4"]}">Dimension scores</h3><table style="width:100%; border-collapse:collapse;">{rows}</table>'
+
+
+def _signals_list(p: AlertEmailPayload) -> str:
+    if not p.buying_signals:
+        return ""
+    items = ""
+    for s in p.buying_signals[:6]:
+        strength = _e(s.get("strength") or "medium")
+        cat = _e(s.get("category") or "SIGNAL")
+        q = _e((s.get("quote") or "")[:160])
+        items += f'<div style="{S["li_bullet"]}"><span style="position:absolute;left:4px;color:#1B6B3A;">▲</span><strong>{cat}</strong> <span style="color:#888;font-size:11px;">({strength})</span><br><span style="color:#555;font-style:italic;">"{q}"</span></div>'
+    return f'<h3 style="{S["h4"]}">Buying signals</h3>{items}'
+
+
+def _objections_list(p: AlertEmailPayload) -> str:
+    if not p.objections:
+        return ""
+    items = ""
+    for o in p.objections[:6]:
+        cat = _e(o.get("category") or "OTHER")
+        handled = o.get("was_addressed")
+        badge = '<span style="color:#1B6B3A;">✓ addressed</span>' if handled else '<span style="color:#B00020;">✗ unaddressed</span>'
+        q = _e((o.get("quote") or "")[:160])
+        items += f'<div style="{S["li_bullet"]}"><span style="position:absolute;left:4px;color:#B8860B;">●</span><strong>{cat}</strong> {badge}<br><span style="color:#555;font-style:italic;">"{q}"</span></div>'
+    return f'<h3 style="{S["h4"]}">Objections</h3>{items}'
+
+
+def _competitors_line(p: AlertEmailPayload) -> str:
+    if not p.competitors_mentioned:
+        return ""
+    names = ", ".join(_e(c.get("name") or "?") for c in p.competitors_mentioned)
+    return f'<h3 style="{S["h4"]}">Competitors mentioned</h3><p style="margin:0 0 8px; color:#333;">{names}</p>'
+
+
+def _key_quotes_list(p: AlertEmailPayload) -> str:
+    if not p.key_quotes:
+        return ""
+    items = ""
+    for k in p.key_quotes[:4]:
+        sp = _e(k.get("speaker") or "?")
+        q = _e((k.get("quote") or "")[:180])
+        why = _e((k.get("why_notable") or "")[:120])
+        why_block = f'<div style="font-size:11px; color:#888;">— {why}</div>' if why else ""
+        items += (
+            f'<div style="border-left:3px solid #ccc; padding:6px 12px; margin:6px 0; background:#fafafa;">'
+            f'<div style="font-size:11px; color:#888; font-weight:600;">{sp}</div>'
+            f'<div style="color:#333; font-style:italic;">"{q}"</div>'
+            f'{why_block}</div>'
+        )
+    return f'<h3 style="{S["h4"]}">Key quotes</h3>{items}'
+
+
+def _summary_bullets(p: AlertEmailPayload) -> str:
+    if not p.call_summary_bullets:
+        return ""
+    items = "".join(_bullet(b) for b in p.call_summary_bullets[:6])
+    return f'<h3 style="{S["h4"]}">At a glance</h3>{items}'
+
+
+def build_overview_email(p: AlertEmailPayload, alert_level: str) -> tuple[str, str]:
+    """Full professional call-analysis overview. Always sent, per-call."""
+    theme = _LEVEL_THEME.get(alert_level, _LEVEL_THEME["none"])
+    accent = theme["accent"]
+    title = p.call_title or (p.call_type or "Sales Call")
+    with_label = f" ({p.rep_name or 'Rep'} ↔ {p.prospect_name})" if p.prospect_name else ""
+
+    # Subject reflects the nature of the email
+    if alert_level == "intervention":
+        subject = f"🚨 Intervention Required — {title}{with_label}"
+    elif alert_level == "coaching":
+        subject = f"⭐ Coaching Example — {title}{with_label}"
+    else:
+        subject = f"📊 Call Analysis — {title}{with_label}"
+
+    # Recommendation only for the two alert levels
+    recommendation = ""
+    if alert_level == "intervention":
+        reasons = _intervention_next_steps(p)
+        recommendation = f'<div style="{theme["rec_style"]}"><strong>Recommended next steps</strong>{_next_step_block(reasons, accent)}</div>'
+    elif alert_level == "coaching":
+        reasons = _coaching_next_steps(p)
+        recommendation = f'<div style="{theme["rec_style"]}"><strong>Recommended next steps</strong>{_next_step_block(reasons, accent)}</div>'
+
+    summary = _e(p.ai_summary) or "(no summary available)"
+
+    body = f"""
+<tr><td style="{S['body']}">
+  <div style="background:{accent}14; border-radius:10px; padding:14px; margin:0 0 16px; display:flex; align-items:center;">
+    <div style="{S['score_number']}; color:{accent};">{p.overall_score:.1f}<span style="font-size:13px;color:#888;">/5</span></div>
+    <div style="margin-left:14px;">
+      <div style="font-weight:700; color:{accent};">{_e(p.score_band) or '—'}</div>
+      <div style="font-size:12px; color:#555;">Next step: {_e(p.next_step_quality) or '—'}</div>
+    </div>
+  </div>
+
+  {recommendation}
+
+  <h3 style="{S['h4_first']}">Summary</h3>
+  <p style="margin:0 0 8px; color:#333; line-height:1.55;">{summary}</p>
+
+  {_summary_bullets(p)}
+  {_dimensions_table(p)}
+
+  <h3 style="{S['h4']}">Strengths</h3>
+  {''.join(_bullet(s) for s in p.strengths[:5]) or '<p style="color:#888;">—</p>'}
+  <h3 style="{S['h4']}">Improvements</h3>
+  {''.join(_bullet(s) for s in p.improvements[:5]) or '<p style="color:#888;">—</p>'}
+
+  {_signals_list(p)}
+  {_objections_list(p)}
+  {_competitors_line(p)}
+
+  <h3 style="{S['h4']}">Next step</h3>
+  {_next_step_action_line(p) or '<p style="color:#888;">Not captured on this call.</p>'}
+
+  {_key_quotes_list(p)}
+
+  <p style="margin:22px 0 0;">{_cta(p.analysis_url, 'View Full Analysis →')}</p>
+</td></tr>
+""".strip()
+
+    html = f"""
+<table style="{S['table']}" cellpadding="0" cellspacing="0">
+  <tr><td style="{theme['banner']}">{theme['label']} — {_e(title)}</td></tr>
+  <tr><td style="{S['meta_row']}">{_meta_line(p)}</td></tr>
+  {body}
+  <tr><td style="{S['footer']}">Sales Genie · automated call analysis</td></tr>
+</table>
+""".strip()
+    return subject, html
+
+
+# ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
 async def send_alert_email(
     payload: AlertEmailPayload, *, alert_level: str
 ) -> dict:
-    if alert_level == "intervention":
-        subject, html = build_intervention_email(payload)
-    elif alert_level == "coaching":
-        subject, html = build_coaching_email(payload)
-    else:
-        raise EmailDeliveryError(f"unknown alert_level {alert_level!r} — no email sent")
+    """Send the professional overview email for ANY level (none/coaching/intervention)."""
+    subject, html = build_overview_email(payload, alert_level)
     result = await EmailNotifier().send(payload.recipient_email, subject, html)
     return {"subject": subject, "recipient": payload.recipient_email, **result}
 

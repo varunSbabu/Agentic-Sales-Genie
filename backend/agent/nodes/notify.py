@@ -48,9 +48,9 @@ async def _write_notification_row(
 
 
 async def send_notification_node(state: GenieState) -> dict:
+    # An overview email is sent for every analyzed call; the alert level only
+    # changes the banner + recommendation. No early-return for "none".
     level = state.get("alert_level", "none")
-    if level == "none":
-        return {"notification_sent": False}
 
     analysis_id = state.get("analysis_id")
     if not analysis_id:
@@ -88,14 +88,21 @@ async def send_notification_node(state: GenieState) -> dict:
                 score_band=state.get("score_band") or "",
                 score_justification=state.get("score_justification") or "",
                 next_step_quality=state.get("next_step_quality") or "",
+                # Narrative
                 ai_summary=state.get("ai_summary") or "",
+                call_notes=state.get("call_notes") or "",
+                call_summary_bullets=list(state.get("call_summary_bullets") or []),
+                # Full detail for the professional overview
+                dimension_scores=list(state.get("dimension_scores") or []),
                 dimension_scores_count=len(state.get("dimension_scores") or []),
+                key_quotes=list(state.get("key_quotes") or []),
                 # Reasoning inputs
                 strengths=list(state.get("strengths") or []),
                 improvements=list(state.get("improvements") or []),
                 loss_risk_categories=list(state.get("loss_risk_categories") or []),
                 objections=list(state.get("objections") or []),
                 buying_signals=list(state.get("buying_signals") or []),
+                competitors_mentioned=list(state.get("competitors_mentioned") or []),
                 # Next step
                 next_step_action=state.get("next_step_action") or "",
                 next_step_owner=state.get("next_step_owner") or "",
