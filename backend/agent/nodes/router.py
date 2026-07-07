@@ -10,13 +10,18 @@ from backend.agent.state import GenieState
 
 
 def should_send_notification(state: GenieState) -> str:
-    """Return 'send' if a notification is warranted, else 'skip'."""
+    """Route to the notification node for EVERY successful analysis.
+
+    A professional call-analysis overview email is sent for every call; the
+    intervention/coaching variants are just different banners on the same
+    email. The notify node itself honours the user's notify_email preference.
+    Only skip if the analysis failed or never persisted.
+    """
     if state.get("error"):
         return "skip"
-    level = state.get("alert_level", "none")
-    if level in ("intervention", "coaching"):
-        return "send"
-    return "skip"
+    if not state.get("analysis_id"):
+        return "skip"
+    return "send"
 
 
 def has_fatal_error(state: GenieState) -> str:
