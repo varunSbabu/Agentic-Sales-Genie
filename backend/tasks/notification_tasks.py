@@ -12,6 +12,7 @@ from __future__ import annotations
 import asyncio
 import uuid
 
+from backend.config import settings
 from backend.tasks.celery_app import celery_app
 from backend.utils.logging import logger
 
@@ -64,7 +65,7 @@ async def _resend(analysis_id: str) -> dict:
         buying_signals=list(a.buying_signals or []),
         next_step_action=a.next_step_action or "",
         next_step_owner=a.next_step_owner or "",
-        analysis_url=f"http://localhost:8000/#analysis-{analysis_id}",
+        analysis_url=f"{settings.public_base_url}/#analysis-{analysis_id}",
     )
     try:
         await send_alert_email(payload, alert_level=a.alert_level)

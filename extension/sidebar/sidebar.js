@@ -81,9 +81,19 @@ async function boot() {
   const token = await getToken();
   if (!token) { show("login"); return; }
 
-  // If a recording is in progress, resume the RECORDING view
+  // If a recording is in progress, resume the RECORDING view — but ignore a
+  // stale/zombie session (older than 2h means the recorder is long gone;
+  // resuming it would show a bogus timer and a broken Stop).
   const st = await sw({ type: "GET_RECORDING_STATE" });
-  if (st.state && st.state.active) { resumeRecording(st.state); return; }
+  if (st.state && st.state.active) {
+    const age = st.state.startedAt ? Date.now() - st.state.startedAt : 0;
+    if (age > 2 * 60 * 60 * 1000) {
+      await sw({ type: "STOP_RECORDING" });   // force-clear the zombie
+    } else {
+      resumeRecording(st.state);
+      return;
+    }
+  }
 
   // New / unconfigured users get the guided setup wizard first
   if (await needsOnboarding()) { showOnboarding(); return; }
@@ -378,9 +388,10 @@ function resumeRecording(state) {
   recTimer = setInterval(() => { recSeconds++; updateTimer(); }, 1000);
 }
 function updateTimer() {
-  const m = String(Math.floor(recSeconds / 60)).padStart(2, "0");
+  const h = Math.floor(recSeconds / 3600);
+  const m = String(Math.floor((recSeconds % 3600) / 60)).padStart(2, "0");
   const s = String(recSeconds % 60).padStart(2, "0");
-  $("rec-timer").textContent = `${m}:${s}`;
+  $("rec-timer").textContent = h > 0 ? `${h}:${m}:${s}` : `${m}:${s}`;
 }
 
 $("btn-stop-recording").onclick = async () => {

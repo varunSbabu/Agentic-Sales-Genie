@@ -16,6 +16,7 @@ from datetime import datetime, timezone
 from sqlalchemy import select
 
 from backend.agent.state import GenieState
+from backend.config import settings
 from backend.db.models import Notification, User
 from backend.db.session import AsyncSessionLocal
 from backend.notifications.email import (
@@ -106,7 +107,7 @@ async def send_notification_node(state: GenieState) -> dict:
                 # Next step
                 next_step_action=state.get("next_step_action") or "",
                 next_step_owner=state.get("next_step_owner") or "",
-                analysis_url=f"http://localhost:8000/#analysis-{analysis_id}",
+                analysis_url=f"{settings.public_base_url}/#analysis-{analysis_id}",
             )
             try:
                 await send_alert_email(payload, alert_level=level)
@@ -138,7 +139,7 @@ async def send_notification_node(state: GenieState) -> dict:
                 strengths=list(state.get("strengths") or []),
                 improvements=list(state.get("improvements") or []),
                 loss_risk_categories=list(state.get("loss_risk_categories") or []),
-                analysis_url=f"http://localhost:8000/#analysis-{analysis_id}",
+                analysis_url=f"{settings.public_base_url}/#analysis-{analysis_id}",
             )
             slack_result = await send_slack_alert(user.id, slack_payload, alert_level=level)
             if slack_result and slack_result.get("ok"):

@@ -241,6 +241,13 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
           sendResponse({ ok: true });
           break;
         }
+        case "OFFSCREEN_AUTOSTOP": {
+          // Recorder hit the max-duration cap — finalize like a normal stop.
+          const result = await stopRecording();
+          await chrome.storage.local.set({ recordingAutoStopped: true });
+          sendResponse({ ok: true, autostopped: true, ...result });
+          break;
+        }
         case "OFFSCREEN_ERROR": {
           // Recording failed inside the offscreen doc
           recordingState.active = false;

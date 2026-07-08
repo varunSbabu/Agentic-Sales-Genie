@@ -1,0 +1,78 @@
+# Render Blueprint — one-click deploy of Sales Genie's backend.
+#   1. Push this repo to GitHub
+#   2. In Render: New → Blueprint → pick this repo
+#   3. Fill the environment variables marked `sync: false` (secrets) in the dashboard
+#   4. Deploy — Render builds the Docker image once and runs web + worker + Redis
+#
+# The database is Supabase (external) — set DATABASE_URL / DATABASE_URL_SYNC.
+# HTTPS + a public URL are provided automatically by Render for the web service.
+
+services:
+  # --- API + web (runs migrations on deploy via entrypoint) ----------------
+  - type: web
+    name: sales-genie-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerCommand: scripts/entrypoint.sh web
+    healthCheckPath: /health
+    plan: starter
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: WEB_CONCURRENCY
+        value: "3"
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: sales-genie-redis
+          property: connectionString
+      # Secrets — set these in the Render dashboard (sync:false = not committed)
+      - { key: DATABASE_URL, sync: false }
+      - { key: DATABASE_URL_SYNC, sync: false }
+      - { key: SUPABASE_URL, sync: false }
+      - { key: SUPABASE_PROJECT_REF, sync: false }
+      - { key: JWT_SECRET_KEY, generateValue: true }
+      - { key: ENCRYPTION_KEY, sync: false }
+      - { key: PUBLIC_BASE_URL, sync: false }   # set to this service's https URL after first deploy
+      - { key: LLM_PROVIDER, value: groq }
+      - { key: GROQ_API_KEY, sync: false }
+      - { key: GOOGLE_API_KEY, sync: false }
+      - { key: ANTHROPIC_API_KEY, sync: false }
+      - { key: ASSEMBLYAI_API_KEY, sync: false }
+      - { key: SENDGRID_API_KEY, sync: false }
+      - { key: SENDGRID_FROM_EMAIL, sync: false }
+      - { key: CORS_ORIGINS, sync: false }      # e.g. chrome-extension://<published-id>
+
+  # --- Celery worker (shares the same image) -------------------------------
+  - type: worker
+    name: sales-genie-worker
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerCommand: scripts/entrypoint.sh worker
+    plan: starter
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: sales-genie-redis
+          property: connectionString
+      - { key: DATABASE_URL, sync: false }
+      - { key: DATABASE_URL_SYNC, sync: false }
+      - { key: ENCRYPTION_KEY, sync: false }
+      - { key: PUBLIC_BASE_URL, sync: false }
+      - { key: LLM_PROVIDER, value: groq }
+      - { key: GROQ_API_KEY, sync: false }
+      - { key: GOOGLE_API_KEY, sync: false }
+      - { key: ANTHROPIC_API_KEY, sync: false }
+      - { key: ASSEMBLYAI_API_KEY, sync: false }
+      - { key: SENDGRID_API_KEY, sync: false }
+      - { key: SENDGRID_FROM_EMAIL, sync: false }
+
+  # --- Redis (Celery broker + job status) ----------------------------------
+  - type: redis
+    name: sales-genie-redis
+    plan: starter
+    maxmemoryPolicy: noeviction
+    ipAllowList: []   # internal only

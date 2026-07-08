@@ -1,0 +1,90 @@
+# Production compose — for a VPS or any Docker host.
+#   docker compose -f docker-compose.prod.yml up -d --build
+#
+# Differences from the dev compose:
+#   - no source volume mounts, no --reload (immutable image)
+#   - entrypoint.sh runs `alembic upgrade head` before the web server starts
+#   - uvicorn runs multiple workers (WEB_CONCURRENCY)
+#   - restart: always on every service
+#   - Flower is gated behind basic auth (set FLOWER_BASIC_AUTH) and bound to localhost
+#   - Redis is internal only (no published port)
+#
+# Put a reverse proxy (Caddy/nginx/Traefik) in front of `backend` for HTTPS.
+# Supabase is the database — set DATABASE_URL / DATABASE_URL_SYNC in .env.
+
+services:
+  redis:
+    image: redis:7-alpine
+    restart: always
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  backend:
+    build: .
+    image: sales-genie-backend:latest
+    restart: always
+    env_file: .env
+    environment:
+      APP_ENV: production
+      WEB_CONCURRENCY: ${WEB_CONCURRENCY:-3}
+    ports:
+      - "8000:8000"          # front this with a reverse proxy for TLS
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      - chroma_data:/app/chroma_db
+      - hf_cache:/root/.cache/huggingface
+    command: ["scripts/entrypoint.sh", "web"]
+
+  celery_worker:
+    image: sales-genie-backend:latest
+    restart: always
+    env_file: .env
+    environment:
+      APP_ENV: production
+    depends_on:
+      redis:
+        condition: service_healthy
+      backend:
+        condition: service_started
+    volumes:
+      - chroma_data:/app/chroma_db
+      - hf_cache:/root/.cache/huggingface
+    command: ["scripts/entrypoint.sh", "worker"]
+
+  celery_beat:
+    image: sales-genie-backend:latest
+    restart: always
+    env_file: .env
+    environment:
+      APP_ENV: production
+    depends_on:
+      redis:
+        condition: service_healthy
+    command: ["scripts/entrypoint.sh", "beat"]
+
+  flower:
+    image: sales-genie-backend:latest
+    restart: always
+    env_file: .env
+    environment:
+      APP_ENV: production
+      # REQUIRED in prod: set FLOWER_BASIC_AUTH=user:pass in .env
+      FLOWER_BASIC_AUTH: ${FLOWER_BASIC_AUTH:-admin:changeme}
+    depends_on:
+      redis:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:5555:5555"   # localhost only — tunnel to reach it
+    command: ["scripts/entrypoint.sh", "flower"]
+
+volumes:
+  redis_data:
+  chroma_data:
+  hf_cache:

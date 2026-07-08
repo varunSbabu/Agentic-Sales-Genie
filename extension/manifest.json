@@ -13,11 +13,13 @@
   ],
   "host_permissions": [
     "http://localhost:8000/*",
-    "https://*.assemblyai.com/*",
     "https://app.zoom.us/*",
     "https://meet.google.com/*",
     "https://app.gong.io/*",
     "https://teams.microsoft.com/*"
+  ],
+  "optional_host_permissions": [
+    "https://*/*"
   ],
   "background": {
     "service_worker": "background/service_worker.js",
