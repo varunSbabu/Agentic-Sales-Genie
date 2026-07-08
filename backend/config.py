@@ -20,6 +20,33 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     extension_origin: str = "chrome-extension://__REPLACE_WITH_EXTENSION_ID__"
     frontend_url: str = "http://localhost:8000"
+    # Public URL the backend is reachable at (used for links in emails/Slack).
+    # In production set this to your deployed HTTPS URL, e.g. https://api.yourdomain.com
+    public_base_url: str = "http://localhost:8000"
+    # Comma-separated extra CORS origins to allow (e.g. your dashboard domain).
+    cors_origins: str = ""
+
+    @property
+    def is_production(self) -> bool:
+        return self.app_env == "production"
+
+    @property
+    def cors_origin_list(self) -> list[str]:
+        base = [
+            self.extension_origin,
+            self.frontend_url,
+            self.public_base_url,
+            "http://localhost:8000",
+            "http://localhost:5173",
+        ]
+        extra = [o.strip() for o in (self.cors_origins or "").split(",") if o.strip()]
+        # de-dupe, drop the unreplaced placeholder
+        seen, out = set(), []
+        for o in base + extra:
+            if o and "__REPLACE_WITH_EXTENSION_ID__" not in o and o not in seen:
+                seen.add(o)
+                out.append(o)
+        return out
 
     # --- LLM (provider-agnostic) --------------------------------------------
     # Default provider for agent nodes. "google" and "groq" are free.
@@ -108,7 +135,36 @@ class Settings(BaseSettings):
 
 @lru_cache
 def get_settings() -> Settings:
-    return Settings()
+    s = Settings()
+    _validate_production(s)
+    return s
+
+
+def _validate_production(s: Settings) -> None:
+    """Fail fast on unsafe config when running in production."""
+    if s.app_env != "production":
+        return
+    problems: list[str] = []
+    if not s.jwt_secret_key or s.jwt_secret_key == "change-me-in-production":
+        problems.append("JWT_SECRET_KEY must be set to a strong value")
+    if not s.encryption_key:
+        problems.append("ENCRYPTION_KEY must be set (CRM tokens are stored encrypted)")
+    if not s.database_url or "localhost" in s.database_url:
+        problems.append("DATABASE_URL must point at your production database")
+    if s.public_base_url.startswith("http://") and "localhost" not in s.public_base_url:
+        problems.append("PUBLIC_BASE_URL should be https:// in production")
+    provider_key = {
+        "groq": s.groq_api_key,
+        "google": s.google_api_key,
+        "anthropic": s.anthropic_api_key,
+    }.get(s.llm_provider, "")
+    if not provider_key:
+        problems.append(f"LLM_PROVIDER={s.llm_provider} but its API key is not set")
+    if problems:
+        raise RuntimeError(
+            "Refusing to start in production with unsafe config:\n  - "
+            + "\n  - ".join(problems)
+        )
 
 
 settings = get_settings()

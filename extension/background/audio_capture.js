@@ -10,6 +10,10 @@
 let mediaRecorder = null;
 let mediaStream = null;
 let ctx = null; // { sessionId, backendUrl, authToken, seq }
+let autoStopTimer = null;
+
+// Hard cap so a forgotten recording can never run indefinitely.
+const MAX_RECORDING_MS = 60 * 60 * 1000; // 60 minutes
 
 function reportError(message) {
   chrome.runtime.sendMessage({ type: "OFFSCREEN_ERROR", error: message });
@@ -76,6 +80,13 @@ async function startCapture({ streamId, sessionId, backendUrl, authToken }) {
 
     // 1-second timeslice → one chunk per second
     mediaRecorder.start(1000);
+
+    // Safety net: auto-stop after the max duration and tell the service worker
+    // to finalize, so a recording can never run forever if the user forgets.
+    autoStopTimer = setTimeout(() => {
+      chrome.runtime.sendMessage({ type: "OFFSCREEN_AUTOSTOP" });
+      stopCapture();
+    }, MAX_RECORDING_MS);
   } catch (err) {
     reportError(`could not start capture: ${err.message || err}`);
   }
@@ -83,6 +94,7 @@ async function startCapture({ streamId, sessionId, backendUrl, authToken }) {
 
 function stopCapture() {
   try {
+    if (autoStopTimer) { clearTimeout(autoStopTimer); autoStopTimer = null; }
     if (mediaRecorder && mediaRecorder.state !== "inactive") {
       mediaRecorder.stop();
     }

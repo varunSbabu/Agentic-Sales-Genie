@@ -44,6 +44,20 @@ async function checkConn() {
 $("s-save-backend").onclick = async () => {
   backendUrl = ($("s-backend").value || DEFAULT_BACKEND).trim().replace(/\/$/, "");
   await chrome.storage.local.set({ backendUrl });
+
+  // For a non-localhost (production) backend, the extension needs host
+  // permission for that origin. Request it here (needs the user gesture).
+  try {
+    if (!backendUrl.startsWith("http://localhost")) {
+      const origin = new URL(backendUrl).origin + "/*";
+      const granted = await chrome.permissions.request({ origins: [origin] });
+      if (!granted) {
+        setStatus("s-account-status", "warn", "backend saved, but host permission was denied — the extension can't call it until you allow access");
+        return;
+      }
+    }
+  } catch (e) { /* invalid URL falls through to checkConn */ }
+
   await checkConn();
   setStatus("s-account-status", "ok", "✓ backend saved");
   loadAll();
