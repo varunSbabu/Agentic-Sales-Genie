@@ -7,11 +7,10 @@ milestone so the API's poll endpoint can surface it.
 
 from __future__ import annotations
 
-import asyncio
 import re
 import uuid
 
-from backend.tasks.celery_app import celery_app, set_job_status
+from backend.tasks.celery_app import celery_app, run_async, set_job_status
 from backend.utils.logging import logger
 
 _LABEL_RE = re.compile(r"^(Rep|Prospect|Speaker_[A-Z]):\s*", re.MULTILINE)
@@ -154,7 +153,7 @@ def process_call_task(self, user_id: str, body: dict) -> dict:
     logger.info("process_call_task START job={} user={}", job_id, user_id)
     set_job_status(job_id, state="queued", step="picked up by worker", progress=5)
     try:
-        result = asyncio.run(_run_pipeline(job_id, user_id, body))
+        result = run_async(_run_pipeline(job_id, user_id, body))
         if result.get("error"):
             set_job_status(
                 job_id, state="failed", step="agent error", progress=100,

@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Sales Genie — Dashboard</title>
+<style>
+  :root {
+    --bg: #0b0e14; --surface: #11151f; --surface-2: #161b28; --surface-3: #1c2333;
+    --border: #232b3d; --text: #e6edf3; --text-dim: #aeb9c9; --muted: #7d8899;
+    --accent: #6366f1; --accent-2: #8b5cf6;
+    --green: #3fb950; --green-2: #56d364; --amber: #d29922; --red: #f85149; --blue: #2f81f7;
+    --radius: 14px; --radius-sm: 9px;
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--font); font-size: 14px; line-height: 1.5; }
+  a { color: #8ab4ff; text-decoration: none; } a:hover { text-decoration: underline; }
+  button { font-family: var(--font); cursor: pointer; }
+
+  /* ---- App shell ---- */
+  .app { display: grid; grid-template-columns: 232px 1fr; min-height: 100vh; }
+  .sidebar { background: var(--surface); border-right: 1px solid var(--border); padding: 20px 14px; position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; }
+  .brand { display: flex; align-items: center; gap: 10px; padding: 4px 8px 20px; }
+  .brand .logo { width: 30px; height: 30px; border-radius: 8px; background: linear-gradient(135deg, var(--accent), var(--accent-2)); display: flex; align-items: center; justify-content: center; font-size: 16px; }
+  .brand h1 { font-size: 15px; margin: 0; font-weight: 700; }
+  .nav { display: flex; flex-direction: column; gap: 3px; }
+  .nav button { display: flex; align-items: center; gap: 11px; width: 100%; text-align: left; background: transparent; border: none; color: var(--text-dim); padding: 10px 12px; border-radius: var(--radius-sm); font-size: 13.5px; font-weight: 500; }
+  .nav button .ico { width: 18px; text-align: center; opacity: .9; }
+  .nav button:hover { background: var(--surface-2); color: var(--text); }
+  .nav button.active { background: linear-gradient(135deg, rgba(99,102,241,.22), rgba(139,92,246,.18)); color: #fff; }
+  .side-foot { margin-top: auto; font-size: 11px; color: var(--muted); padding: 8px; }
+  .conn { display: flex; align-items: center; gap: 7px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+  .dot.ok { background: var(--green); box-shadow: 0 0 8px var(--green); } .dot.err { background: var(--red); }
+
+  .main { padding: 26px 34px 60px; max-width: 1180px; }
+  .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+  .topbar h2 { margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -.3px; }
+  .topbar .sub { color: var(--muted); font-size: 13px; margin-top: 3px; }
+  .account { display: flex; align-items: center; gap: 11px; }
+  .avatar { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--accent-2)); display: flex; align-items: center; justify-content: center; font-weight: 700; }
+  .account .who { text-align: right; } .account .who .n { font-size: 13px; font-weight: 600; } .account .who .e { font-size: 11px; color: var(--muted); }
+  .btn { background: var(--surface-2); border: 1px solid var(--border); color: var(--text); padding: 8px 14px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; }
+  .btn:hover { background: var(--surface-3); }
+  .btn.primary { background: linear-gradient(135deg, var(--accent), var(--accent-2)); border: none; }
+  .btn.primary:hover { filter: brightness(1.08); }
+  .btn.sm { padding: 5px 10px; font-size: 12px; }
+  .btn.danger { color: #ff9d96; border-color: rgba(248,81,73,.3); }
+
+  /* ---- Cards / grid ---- */
+  .grid { display: grid; gap: 16px; }
+  .cards-4 { grid-template-columns: repeat(4, 1fr); }
+  .cards-2 { grid-template-columns: repeat(2, 1fr); }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; }
+  .card h3 { margin: 0 0 14px; font-size: 12px; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); font-weight: 700; }
+  .kpi .label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; font-weight: 600; }
+  .kpi .value { font-size: 32px; font-weight: 800; margin-top: 6px; letter-spacing: -1px; }
+  .kpi .value small { font-size: 15px; color: var(--muted); font-weight: 600; }
+
+  /* ---- Bars ---- */
+  .bar-row { display: grid; grid-template-columns: 130px 1fr 44px; align-items: center; gap: 12px; margin-bottom: 9px; font-size: 12.5px; }
+  .bar-row .name { color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bar-track { background: var(--surface-3); border-radius: 6px; height: 9px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 6px; background: linear-gradient(90deg, var(--accent), var(--accent-2)); }
+  .bar-row .num { text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+  /* ---- Table ---- */
+  .toolbar { display: flex; gap: 10px; align-items: center; margin-bottom: 14px; flex-wrap: wrap; }
+  input, select, textarea { background: var(--surface-2); border: 1px solid var(--border); color: var(--text); padding: 9px 12px; border-radius: var(--radius-sm); font-size: 13px; font-family: var(--font); }
+  textarea { resize: vertical; min-height: 64px; width: 100%; font-family: var(--mono); font-size: 12px; }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); }
+  .search { flex: 1; min-width: 200px; }
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); font-weight: 700; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+  td { padding: 13px 12px; border-bottom: 1px solid var(--border); font-size: 13px; }
+  tbody tr { cursor: pointer; } tbody tr:hover { background: var(--surface-2); }
+  .band { font-weight: 700; font-variant-numeric: tabular-nums; }
+  .pill { display: inline-block; padding: 2px 9px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+  .muted { color: var(--muted); }
+  .empty { text-align: center; color: var(--muted); padding: 40px; }
+
+  /* ---- Detail drawer ---- */
+  .drawer-bg { position: fixed; inset: 0; background: rgba(0,0,0,.55); display: none; z-index: 40; }
+  .drawer-bg.show { display: block; }
+  .drawer { position: fixed; top: 0; right: 0; height: 100vh; width: min(620px, 94vw); background: var(--surface); border-left: 1px solid var(--border); z-index: 41; transform: translateX(100%); transition: transform .22s ease; overflow-y: auto; padding: 24px 26px 60px; }
+  .drawer.show { transform: translateX(0); }
+  .drawer .close { position: absolute; top: 16px; right: 18px; background: var(--surface-2); border: 1px solid var(--border); color: var(--text); width: 30px; height: 30px; border-radius: 8px; font-size: 16px; }
+  .score-hero { display: flex; gap: 16px; align-items: center; margin: 8px 0 18px; }
+  .ring { width: 74px; height: 74px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 800; color: #fff; flex-shrink: 0; }
+  .section-label { font-size: 11px; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); font-weight: 700; margin: 20px 0 8px; }
+  .list { margin: 0; padding-left: 18px; } .list li { margin-bottom: 6px; }
+  .list.good li::marker { color: var(--green-2); } .list.warn li::marker { color: var(--amber); }
+  .quote { border-left: 3px solid var(--accent); padding: 6px 12px; margin: 8px 0; background: var(--surface-2); border-radius: 0 8px 8px 0; font-style: italic; color: var(--text-dim); }
+  .kv { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 6px; }
+  .tag { background: var(--surface-2); border: 1px solid var(--border); border-radius: 20px; padding: 3px 11px; font-size: 12px; }
+
+  /* ---- Status + forms ---- */
+  .status { font-size: 12.5px; padding: 9px 12px; border-radius: var(--radius-sm); margin-top: 10px; display: none; }
+  .status.show { display: block; }
+  .status.ok { background: rgba(63,185,80,.12); color: #6ee787; } .status.err { background: rgba(248,81,73,.12); color: #ff9d96; } .status.info { background: rgba(47,129,247,.1); color: #8ab4ff; }
+  .field { margin-bottom: 13px; } .field label { display: block; font-size: 12px; color: var(--text-dim); margin-bottom: 5px; font-weight: 500; }
+  .field input, .field select { width: 100%; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .check { display: flex; align-items: center; gap: 8px; font-size: 13px; margin: 10px 0; }
+  .doc { display: flex; align-items: center; justify-content: space-between; padding: 11px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); margin-bottom: 8px; }
+
+  /* ---- Login overlay ---- */
+  .login-wrap { position: fixed; inset: 0; background: var(--bg); display: none; align-items: center; justify-content: center; z-index: 60; }
+  .login-wrap.show { display: flex; }
+  .login-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 30px; width: 360px; }
+  .login-card h2 { margin: 0 0 6px; } .login-card p { color: var(--muted); margin: 0 0 18px; font-size: 13px; }
+  .pw-wrap { position: relative; }
+  .pw-wrap input { width: 100%; padding-right: 38px; }
+  .pw-eye { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 28px; height: 28px; padding: 0; margin: 0; display: flex; align-items: center; justify-content: center; background: transparent; border: none; box-shadow: none; color: var(--muted); cursor: pointer; opacity: .75; }
+  .pw-eye:hover { opacity: 1; color: var(--text-dim); }
+  .pw-eye svg { width: 18px; height: 18px; display: block; }
+
+  @media (max-width: 820px) {
+    .app { grid-template-columns: 1fr; }
+    .sidebar { position: static; height: auto; flex-direction: row; align-items: center; overflow-x: auto; }
+    .side-foot { display: none; } .brand { padding: 4px 8px; }
+    .nav { flex-direction: row; }
+    .cards-4 { grid-template-columns: repeat(2, 1fr); } .cards-2 { grid-template-columns: 1fr; }
+    .main { padding: 18px; }
+  }
+</style>
+</head>
+<body>
+  <!-- Login overlay (shown when no valid token) -->
+  <div class="login-wrap" id="login-wrap">
+    <div class="login-card">
+      <h2>Sales Genie</h2>
+      <p>Sign in to view your dashboard.</p>
+      <div class="field"><label>Email</label><input id="li-email" type="email" placeholder="you@example.com" /></div>
+      <div class="field"><label>Password</label>
+        <div class="pw-wrap">
+          <input id="li-password" type="password" placeholder="••••••••••" />
+          <button type="button" class="pw-eye" data-target="li-password" aria-label="Show password"></button>
+        </div>
+      </div>
+      <button class="btn primary" id="li-btn" style="width:100%;">Sign in</button>
+      <div class="status" id="li-status"></div>
+    </div>
+  </div>
+
+  <div class="app" id="app" style="display:none;">
+    <aside class="sidebar">
+      <div class="brand"><div class="logo">✦</div><h1>Sales Genie</h1></div>
+      <nav class="nav" id="nav">
+        <button data-view="overview" class="active"><span class="ico">▤</span> Overview</button>
+        <button data-view="calls"><span class="ico">☎</span> Calls</button>
+        <button data-view="kb"><span class="ico">📚</span> Knowledge Base</button>
+        <button data-view="settings"><span class="ico">⚙</span> Settings</button>
+      </nav>
+      <div class="side-foot">
+        <div class="conn"><span class="dot" id="conn-dot"></span><span id="conn-text">connecting…</span></div>
+        <div style="margin-top:6px;">Sales Genie Dashboard</div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div>
+          <h2 id="view-title">Overview</h2>
+          <div class="sub" id="view-sub"></div>
+        </div>
+        <div class="account">
+          <div class="who"><div class="n" id="acc-name">—</div><div class="e" id="acc-email"></div></div>
+          <div class="avatar" id="acc-avatar">?</div>
+          <button class="btn sm" id="btn-logout">Log out</button>
+        </div>
+      </div>
+      <div id="view-root"></div>
+    </main>
+  </div>
+
+  <!-- Call detail drawer -->
+  <div class="drawer-bg" id="drawer-bg"></div>
+  <div class="drawer" id="drawer">
+    <button class="close" id="drawer-close">×</button>
+    <div id="drawer-body"></div>
+  </div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+let ME = null;
+
+// ---------------------------------------------------------------------------
+// Auth: accept a token handed off from the extension popup via the URL
+// fragment (#token=...&refresh=...). Fragments never reach the server / logs.
+// ---------------------------------------------------------------------------
+function readHandoff() {
+  if (!location.hash) return;
+  const p = new URLSearchParams(location.hash.slice(1));
+  const token = p.get("token");
+  const refresh = p.get("refresh");
+  if (token) localStorage.setItem("sg_token", token);
+  if (refresh) localStorage.setItem("sg_refresh", refresh);
+  if (token || refresh) history.replaceState(null, "", location.pathname + location.search);
+}
+const getToken = () => localStorage.getItem("sg_token");
+const getRefresh = () => localStorage.getItem("sg_refresh");
+function setTokens(t, r) { if (t) localStorage.setItem("sg_token", t); if (r) localStorage.setItem("sg_refresh", r); }
+function clearTokens() { localStorage.removeItem("sg_token"); localStorage.removeItem("sg_refresh"); }
+
+async function api(path, opts = {}) {
+  const doFetch = async () => {
+    const headers = Object.assign({}, opts.headers || {});
+    const token = getToken();
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+    if (opts.body && typeof opts.body === "string") headers["Content-Type"] = "application/json";
+    return fetch(path, { ...opts, headers });
+  };
+  let res = await doFetch();
+  if (res.status === 401 && getRefresh()) {
+    // Try one refresh, then retry the original request.
+    const rr = await fetch("/auth/refresh", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refresh_token: getRefresh() }),
+    });
+    if (rr.ok) { const d = await rr.json(); setTokens(d.access_token, d.refresh_token); res = await doFetch(); }
+  }
+  const ct = res.headers.get("content-type") || "";
+  const data = ct.includes("application/json") ? await res.json() : await res.text();
+  if (!res.ok) {
+    const err = new Error(fmtDetail(data && data.detail, `request failed (${res.status})`));
+    err.status = res.status; throw err;
+  }
+  return data;
+}
+function fmtDetail(detail, fallback) {
+  if (!detail) return fallback;
+  if (typeof detail === "string") return detail;
+  if (Array.isArray(detail)) return detail.map((d) => (d && d.msg) || String(d)).join("; ") || fallback;
+  if (detail.msg) return detail.msg;
+  return fallback;
+}
+
+// ---------------------------------------------------------------------------
+// Boot
+// ---------------------------------------------------------------------------
+async function boot() {
+  readHandoff();
+  await checkConn();
+  if (!getToken()) return showLogin();
+  try {
+    ME = await api("/auth/me");
+  } catch (e) {
+    if (e.status === 401) return showLogin();
+  }
+  if (!ME) return showLogin();
+  $("login-wrap").classList.remove("show");
+  $("app").style.display = "grid";
+  $("acc-name").textContent = ME.full_name || ME.email;
+  $("acc-email").textContent = ME.email || "";
+  $("acc-avatar").textContent = (ME.full_name || ME.email || "?").trim().charAt(0).toUpperCase();
+  route("overview");
+}
+
+async function checkConn() {
+  try {
+    const r = await fetch("/health"); const d = await r.json();
+    $("conn-dot").className = "dot ok"; $("conn-text").textContent = `up · ${d.env}`;
+  } catch (e) { $("conn-dot").className = "dot err"; $("conn-text").textContent = "offline"; }
+}
+
+function showLogin() {
+  $("app").style.display = "none";
+  $("login-wrap").classList.add("show");
+}
+$("li-btn").onclick = async () => {
+  const email = $("li-email").value.trim(); const password = $("li-password").value;
+  if (!email || !password) return setStatus("li-status", "err", "enter email + password");
+  setStatus("li-status", "info", "signing in…");
+  try {
+    const r = await fetch("/auth/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, password }) });
+    const d = await r.json();
+    if (!r.ok) return setStatus("li-status", "err", fmtDetail(d.detail, "login failed"));
+    setTokens(d.access_token, d.refresh_token);
+    boot();
+  } catch (e) { setStatus("li-status", "err", e.message); }
+};
+$("btn-logout").onclick = () => { clearTokens(); showLogin(); };
+
+// Eye toggle: reveal / hide the password field.
+const EYE_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" d="M12 4.5C6.2 4.5 1.7 9.6.6 11.6a.9.9 0 0 0 0 .8C1.7 14.4 6.2 19.5 12 19.5s10.3-5.1 11.4-7.1a.9.9 0 0 0 0-.8C22.3 9.6 17.8 4.5 12 4.5Zm0 3.2a4.3 4.3 0 1 0 0 8.6 4.3 4.3 0 0 0 0-8.6Zm0 2.1a2.2 2.2 0 1 1 0 4.4 2.2 2.2 0 0 1 0-4.4Z"/></svg>';
+const EYE_OFF_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" d="M12 4.5C6.2 4.5 1.7 9.6.6 11.6a.9.9 0 0 0 0 .8C1.7 14.4 6.2 19.5 12 19.5s10.3-5.1 11.4-7.1a.9.9 0 0 0 0-.8C22.3 9.6 17.8 4.5 12 4.5Zm0 3.2a4.3 4.3 0 1 0 0 8.6 4.3 4.3 0 0 0 0-8.6Zm0 2.1a2.2 2.2 0 1 1 0 4.4 2.2 2.2 0 0 1 0-4.4Z"/><line x1="3.5" y1="3.5" x2="20.5" y2="20.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+document.querySelectorAll(".pw-eye").forEach((btn) => {
+  btn.innerHTML = EYE_SVG;
+  btn.onclick = () => {
+    const input = $(btn.dataset.target);
+    if (!input) return;
+    const reveal = input.type === "password";
+    input.type = reveal ? "text" : "password";
+    btn.innerHTML = reveal ? EYE_OFF_SVG : EYE_SVG;
+    btn.setAttribute("aria-label", reveal ? "Hide password" : "Show password");
+  };
+});
+
+// ---------------------------------------------------------------------------
+// Routing
+// ---------------------------------------------------------------------------
+const TITLES = { overview: ["Overview", "Your call performance at a glance"], calls: ["Calls", "Every recorded & scored call"], kb: ["Knowledge Base", "Frameworks your calls are scored against"], settings: ["Settings", "Preferences, alerts & integrations"] };
+function route(view) {
+  document.querySelectorAll("#nav button").forEach((b) => b.classList.toggle("active", b.dataset.view === view));
+  $("view-title").textContent = TITLES[view][0];
+  $("view-sub").textContent = TITLES[view][1];
+  ({ overview: renderOverview, calls: renderCalls, kb: renderKB, settings: renderSettings }[view])();
+}
+$("nav").addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) route(b.dataset.view); });
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+function esc(s) { return String(s == null ? "" : s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function bandColor(band) {
+  const b = (band || "").toUpperCase();
+  if (b.includes("EXCELLENT")) return "#3fb950";
+  if (b.includes("SOLID")) return "#56d364";
+  if (b.includes("MIXED")) return "#d29922";
+  if (b.includes("INTERVENTION") || b.includes("POOR")) return "#f85149";
+  return "#7d8899";
+}
+function alertPill(level) {
+  const l = (level || "none").toLowerCase();
+  const c = l === "intervention" ? "#f85149" : l === "coaching" ? "#3fb950" : "#7d8899";
+  return `<span class="pill" style="background:${c}22;color:${c}">${esc(l)}</span>`;
+}
+function fmtDate(iso) { if (!iso) return "—"; return iso.slice(0, 10); }
+function fmtDur(s) { s = s || 0; const m = Math.floor(s / 60), sec = s % 60; return `${m}:${String(sec).padStart(2,"0")}`; }
+function setStatus(id, kind, text) { const el = $(id); if (!el) return; el.className = `status show ${kind}`; el.textContent = text; }
+function bars(obj, colorFn) {
+  const entries = Object.entries(obj || {}).sort((a, b) => b[1] - a[1]);
+  const max = Math.max(1, ...entries.map((e) => e[1]));
+  if (!entries.length) return `<div class="muted">No data yet.</div>`;
+  return entries.map(([k, v]) => `
+    <div class="bar-row">
+      <span class="name">${esc(k)}</span>
+      <span class="bar-track"><span class="bar-fill" style="width:${(v/max*100).toFixed(0)}%;${colorFn?`background:${colorFn(k)}`:""}"></span></span>
+      <span class="num">${v}</span>
+    </div>`).join("");
+}
+
+// ---------------------------------------------------------------------------
+// OVERVIEW
+// ---------------------------------------------------------------------------
+async function renderOverview() {
+  const root = $("view-root");
+  root.innerHTML = `<div class="muted">Loading…</div>`;
+  try {
+    const [stats, calls] = await Promise.all([ api("/history/stats"), api("/history/calls?limit=6") ]);
+    const avg = stats.avg_score != null ? stats.avg_score.toFixed(1) : "—";
+    root.innerHTML = `
+      <div class="grid cards-4">
+        <div class="card kpi"><div class="label">Total calls</div><div class="value">${stats.total_calls}</div></div>
+        <div class="card kpi"><div class="label">Analyzed</div><div class="value">${stats.analyzed_calls}</div></div>
+        <div class="card kpi"><div class="label">Avg score</div><div class="value">${avg}<small> / 5</small></div></div>
+        <div class="card kpi"><div class="label">Interventions</div><div class="value" style="color:${stats.intervention_count?'#f85149':'inherit'}">${stats.intervention_count}</div></div>
+      </div>
+      <div class="grid cards-2" style="margin-top:16px;">
+        <div class="card"><h3>Score bands</h3>${bars(stats.by_band, bandColor)}</div>
+        <div class="card"><h3>Call types</h3>${bars(stats.by_call_type)}</div>
+      </div>
+      <div class="card" style="margin-top:16px;">
+        <h3>Recent calls</h3>
+        <div id="ov-recent"></div>
+      </div>`;
+    const recent = $("ov-recent");
+    if (!calls.items.length) { recent.innerHTML = `<div class="empty">No calls yet. Record one from the extension.</div>`; return; }
+    recent.innerHTML = `<table><tbody>${calls.items.map(rowHtml).join("")}</tbody></table>`;
+    wireRows(recent, calls.items);
+  } catch (e) { root.innerHTML = `<div class="status show err">${esc(e.message)}</div>`; }
+}
+
+// ---------------------------------------------------------------------------
+// CALLS
+// ---------------------------------------------------------------------------
+let ALL_CALLS = [];
+async function renderCalls() {
+  const root = $("view-root");
+  root.innerHTML = `
+    <div class="toolbar">
+      <input class="search" id="c-search" placeholder="Search title or prospect…" />
+      <select id="c-alert"><option value="">All alerts</option><option value="intervention">Intervention</option><option value="coaching">Coaching</option><option value="none">None</option></select>
+    </div>
+    <div class="card" style="padding:6px 6px 2px;"><div id="c-table"></div></div>`;
+  $("c-search").oninput = applyFilter; $("c-alert").onchange = applyFilter;
+  try {
+    const data = await api("/history/calls?limit=100");
+    ALL_CALLS = data.items; applyFilter();
+  } catch (e) { $("c-table").innerHTML = `<div class="status show err">${esc(e.message)}</div>`; }
+}
+function applyFilter() {
+  const q = ($("c-search").value || "").toLowerCase();
+  const alert = $("c-alert").value;
+  const rows = ALL_CALLS.filter((it) => {
+    const hay = `${it.call_title||""} ${it.prospect_name||""} ${it.platform||""}`.toLowerCase();
+    return (!q || hay.includes(q)) && (!alert || (it.alert_level||"none") === alert);
+  });
+  const el = $("c-table");
+  if (!rows.length) { el.innerHTML = `<div class="empty">No matching calls.</div>`; return; }
+  el.innerHTML = `<table>
+    <thead><tr><th>Call</th><th>Prospect</th><th>Type</th><th>When</th><th>Length</th><th>Alert</th><th style="text-align:right">Score</th></tr></thead>
+    <tbody>${rows.map(rowHtml).join("")}</tbody></table>`;
+  wireRows(el, rows);
+}
+function rowHtml(it) {
+  const color = bandColor(it.score_band);
+  const score = it.overall_score != null ? it.overall_score.toFixed(1) : "—";
+  return `<tr data-aid="${it.analysis_id||""}">
+    <td><strong>${esc(it.call_title || it.platform || "Call")}</strong><div class="muted" style="font-size:11px">${esc(it.score_band||"unscored")}</div></td>
+    <td>${esc(it.prospect_name || "—")}</td>
+    <td class="muted">${esc(it.call_type || "—")}</td>
+    <td class="muted">${fmtDate(it.created_at)}</td>
+    <td class="muted">${fmtDur(it.duration_secs)}</td>
+    <td>${alertPill(it.alert_level)}</td>
+    <td style="text-align:right"><span class="band" style="color:${color}">${score}</span></td>
+  </tr>`;
+}
+function wireRows(container, items) {
+  container.querySelectorAll("tr[data-aid]").forEach((tr) => {
+    tr.onclick = () => { const aid = tr.dataset.aid; if (aid) openDetail(aid); else alert("This call has no analysis yet."); };
+  });
+}
+
+// ---------------------------------------------------------------------------
+// CALL DETAIL DRAWER
+// ---------------------------------------------------------------------------
+function closeDrawer() { $("drawer").classList.remove("show"); $("drawer-bg").classList.remove("show"); }
+$("drawer-close").onclick = closeDrawer; $("drawer-bg").onclick = closeDrawer;
+async function openDetail(aid) {
+  $("drawer-bg").classList.add("show"); $("drawer").classList.add("show");
+  $("drawer-body").innerHTML = `<div class="muted">Loading…</div>`;
+  try {
+    const a = await api(`/analysis/${aid}`);
+    const color = bandColor(a.score_band);
+    const dims = (a.dimension_scores || []).map((d) => `
+      <div class="bar-row"><span class="name">${esc(d.name || d.dimension || "—")}</span>
+      <span class="bar-track"><span class="bar-fill" style="width:${((d.score||0)/5*100).toFixed(0)}%"></span></span>
+      <span class="num">${(d.score!=null?d.score:0)}</span></div>`).join("");
+    const list = (arr, cls) => (arr && arr.length) ? `<ul class="list ${cls}">${arr.map((s)=>`<li>${esc(typeof s==="string"?s:(s.text||JSON.stringify(s)))}</li>`).join("")}</ul>` : `<div class="muted">none</div>`;
+    const quotes = (a.key_quotes || []).map((q)=>`<div class="quote">"${esc(typeof q==="string"?q:(q.quote||q.text||""))}"</div>`).join("");
+    const tags = (arr) => (arr && arr.length) ? `<div class="kv">${arr.map((t)=>`<span class="tag">${esc(typeof t==="string"?t:(t.name||JSON.stringify(t)))}</span>`).join("")}</div>` : `<div class="muted">none</div>`;
+    $("drawer-body").innerHTML = `
+      <div class="score-hero">
+        <div class="ring" style="background:linear-gradient(135deg,${color},${color}aa)">${(a.overall_score||0).toFixed(1)}</div>
+        <div>
+          <div style="font-size:18px;font-weight:700">${esc(a.call_title || "Call")}</div>
+          <div class="muted">${esc(a.prospect_name||"")} ${a.call_type?("· "+esc(a.call_type)):""}</div>
+          <div style="margin-top:6px">${alertPill(a.alert_level)} <span class="band" style="color:${color};margin-left:6px">${esc(a.score_band||"")}</span></div>
+        </div>
+      </div>
+      ${a.score_justification?`<div class="muted" style="font-style:italic;line-height:1.5">${esc(a.score_justification)}</div>`:""}
+      ${dims?`<div class="section-label">Dimension scores</div>${dims}`:""}
+      <div class="section-label">Strengths</div>${list(a.strengths,"good")}
+      <div class="section-label">Improvements</div>${list(a.improvements,"warn")}
+      ${quotes?`<div class="section-label">Key quotes</div>${quotes}`:""}
+      <div class="section-label">Objections</div>${tags(a.objections)}
+      <div class="section-label">Buying signals</div>${tags(a.buying_signals)}
+      <div class="section-label">Next step</div>
+      <div>${esc(a.next_step_action||"—")} <span class="muted">(${esc(a.next_step_quality||"?")}${a.next_step_owner?(" · "+esc(a.next_step_owner)):""})</span></div>
+      ${a.ai_summary?`<div class="section-label">AI summary</div><div class="muted" style="white-space:pre-wrap;line-height:1.55">${esc(a.ai_summary)}</div>`:""}
+      <div class="muted" style="margin-top:20px;font-size:11px">analysis ${esc(a.analysis_id)} · ${fmtDate(a.created_at)}</div>`;
+  } catch (e) { $("drawer-body").innerHTML = `<div class="status show err">${esc(e.message)}</div>`; }
+}
+
+// ---------------------------------------------------------------------------
+// KNOWLEDGE BASE
+// ---------------------------------------------------------------------------
+async function renderKB() {
+  const root = $("view-root");
+  root.innerHTML = `
+    <div class="card">
+      <h3>Upload a framework</h3>
+      <div class="toolbar">
+        <input type="file" id="kb-file" accept=".pdf,.docx,.txt,.md" />
+        <button class="btn primary" id="kb-upload">Upload</button>
+        <button class="btn sm" id="kb-refresh">Refresh</button>
+      </div>
+      <div class="muted" style="font-size:12px">PDF, DOCX, TXT or MD. Your calls are scored against these.</div>
+      <div class="status" id="kb-status"></div>
+    </div>
+    <div class="card" style="margin-top:16px;"><h3>Frameworks <span id="kb-total" class="muted"></span></h3><div id="kb-list"></div></div>`;
+  $("kb-upload").onclick = kbUpload; $("kb-refresh").onclick = kbRefresh;
+  kbRefresh();
+}
+async function kbRefresh() {
+  try {
+    const d = await api("/config/kb/status");
+    $("kb-total").textContent = `· ${d.total_chunks} chunks`;
+    const el = $("kb-list");
+    if (!d.documents.length) { el.innerHTML = `<div class="empty">No frameworks yet.</div>`; return; }
+    el.innerHTML = d.documents.map((doc) => {
+      const c = doc.status === "ready" ? "#3fb950" : doc.status === "failed" ? "#f85149" : "#d29922";
+      return `<div class="doc">
+        <div><strong>${esc(doc.filename)}</strong> <span class="muted">· ${doc.chunk_count} chunks · ${fmtDate(doc.uploaded_at)}</span>
+        <div style="color:${c};font-size:12px;margin-top:2px">${esc(doc.status)}</div></div>
+        <button class="btn sm danger" data-id="${doc.id}">Delete</button>
+      </div>`;
+    }).join("");
+    el.querySelectorAll("button[data-id]").forEach((b) => b.onclick = () => kbDelete(b.dataset.id));
+  } catch (e) { setStatus("kb-status", "err", e.message); }
+}
+async function kbUpload() {
+  const f = $("kb-file").files[0];
+  if (!f) return setStatus("kb-status", "err", "pick a file first");
+  setStatus("kb-status", "info", `uploading ${f.name}…`);
+  const form = new FormData(); form.append("file", f);
+  try {
+    const token = getToken();
+    const r = await fetch("/config/kb/upload", { method: "POST", headers: { Authorization: `Bearer ${token}` }, body: form });
+    const d = await r.json();
+    if (!r.ok) return setStatus("kb-status", "err", fmtDetail(d.detail, "upload failed"));
+    setStatus("kb-status", "ok", "✓ accepted — embedding in background…");
+    $("kb-file").value = "";
+    for (let i = 0; i < 10; i++) { await new Promise((r)=>setTimeout(r,2000)); await kbRefresh(); }
+  } catch (e) { setStatus("kb-status", "err", e.message); }
+}
+async function kbDelete(id) {
+  if (!confirm("Delete this framework and its vectors?")) return;
+  try { await api(`/config/kb/${id}`, { method: "DELETE" }); kbRefresh(); }
+  catch (e) { setStatus("kb-status", "err", e.message); }
+}
+
+// ---------------------------------------------------------------------------
+// SETTINGS
+// ---------------------------------------------------------------------------
+async function renderSettings() {
+  const root = $("view-root");
+  root.innerHTML = `
+    <div class="grid cards-2">
+      <div class="card">
+        <h3>Preferences & alerts</h3>
+        <div class="field"><label>Manager email (for intervention alerts)</label><input id="s-manager" placeholder="manager@company.com" /></div>
+        <div class="row2">
+          <div class="field"><label>Low threshold (intervention below)</label><input id="s-low" type="number" step="0.1" min="0" max="5" /></div>
+          <div class="field"><label>High threshold (coaching at/above)</label><input id="s-high" type="number" step="0.1" min="0" max="5" /></div>
+        </div>
+        <label class="check"><input type="checkbox" id="s-email" /> Email notifications</label>
+        <label class="check"><input type="checkbox" id="s-slack" /> Slack notifications</label>
+        <button class="btn primary" id="s-save">Save preferences</button>
+        <div class="status" id="s-status"></div>
+      </div>
+      <div class="card">
+        <h3>Integrations</h3>
+        <div id="int-status"></div>
+
+        <div class="section-label">Notion</div>
+        <div class="field"><label>Integration token</label><input id="int-notion-token" type="password" placeholder="secret_… (blank = keep current)" /></div>
+        <div class="field"><label>Database ID</label><input id="int-notion-db" placeholder="32-character database id" /></div>
+        <button class="btn sm" id="int-save-notion">Save Notion</button>
+
+        <div class="section-label">Google Sheets</div>
+        <div class="field"><label>Sheet ID</label><input id="int-sheets-id" placeholder="the id from the sheet URL" /></div>
+        <div class="field"><label>Service-account JSON</label><textarea id="int-sheets-creds" rows="4" placeholder='{"type":"service_account",...}  (blank = keep current)'></textarea></div>
+        <button class="btn sm" id="int-save-sheets">Save Sheets</button>
+
+        <div class="toolbar" style="margin-top:14px">
+          <button class="btn sm" data-test="notion">Test Notion</button>
+          <button class="btn sm" data-test="sheets">Test Sheets</button>
+          <button class="btn sm" data-test="slack">Test Slack</button>
+        </div>
+        <div class="status" id="int-test"></div>
+      </div>
+    </div>`;
+  try {
+    const p = await api("/config/preferences");
+    $("s-manager").value = p.manager_email || "";
+    $("s-low").value = p.alert_threshold_low ?? 2.5;
+    $("s-high").value = p.alert_threshold_high ?? 4.0;
+    $("s-email").checked = p.notify_email !== false;
+    $("s-slack").checked = !!p.notify_slack;
+  } catch (e) { setStatus("s-status", "err", e.message); }
+  $("s-save").onclick = async () => {
+    try {
+      await api("/config/preferences", { method: "PUT", body: JSON.stringify({
+        manager_email: $("s-manager").value.trim(),
+        alert_threshold_low: parseFloat($("s-low").value) || 2.5,
+        alert_threshold_high: parseFloat($("s-high").value) || 4.0,
+        notify_email: $("s-email").checked, notify_slack: $("s-slack").checked,
+      }) });
+      setStatus("s-status", "ok", "✓ saved");
+    } catch (e) { setStatus("s-status", "err", e.message); }
+  };
+  const renderIntStatus = (s) => {
+    const badge = (on, label) => `<div style="margin-bottom:6px">${on?"🟢":"⚪"} ${label} <span class="muted">${on?"configured":"not set"}</span></div>`;
+    $("int-status").innerHTML = badge(s.notion_configured, "Notion") + badge(s.sheets_configured, "Google Sheets") + badge(s.slack_configured, "Slack")
+      + `<div class="muted" style="margin-top:8px;font-size:12px">Active: ${s.active_connectors.length?esc(s.active_connectors.join(", ")):"none"}</div>`;
+  };
+  try { renderIntStatus(await api("/config/integrations")); }
+  catch (e) { $("int-status").innerHTML = `<div class="status show err">${esc(e.message)}</div>`; }
+
+  // Save connector config. Only non-empty fields are sent, so leaving a field
+  // blank keeps the current value (the backend never returns secrets to prefill).
+  const saveIntegration = async (payload, okMsg) => {
+    if (!Object.keys(payload).length) { setStatus("int-test", "err", "nothing to save — fill a field first"); return; }
+    setStatus("int-test", "info", "saving…");
+    try {
+      await api("/config/integrations", { method: "POST", body: JSON.stringify(payload) });
+      renderIntStatus(await api("/config/integrations"));
+      setStatus("int-test", "ok", okMsg);
+    } catch (e) { setStatus("int-test", "err", e.message); }
+  };
+  $("int-save-notion").onclick = () => {
+    const payload = {};
+    const token = $("int-notion-token").value.trim();
+    const db = $("int-notion-db").value.trim();
+    if (token) payload.notion_token = token;
+    if (db) payload.notion_database_id = db;
+    saveIntegration(payload, "✓ Notion saved");
+  };
+  $("int-save-sheets").onclick = () => {
+    const payload = {};
+    const id = $("int-sheets-id").value.trim();
+    const creds = $("int-sheets-creds").value.trim();
+    if (id) payload.sheets_id = id;
+    if (creds) payload.sheets_credentials = creds;
+    saveIntegration(payload, "✓ Sheets saved");
+  };
+  root.querySelectorAll("button[data-test]").forEach((b) => b.onclick = async () => {
+    setStatus("int-test", "info", `testing ${b.dataset.test}…`);
+    try { const r = await api(`/config/integrations/test/${b.dataset.test}`, { method: "POST" });
+      setStatus("int-test", r.ok === false ? "err" : "ok", fmtDetail(r.detail || r.message, JSON.stringify(r)));
+    } catch (e) { setStatus("int-test", "err", e.message); }
+  });
+}
+
+boot();
+</script>
+</body>
+</html>

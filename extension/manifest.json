@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Sales Genie",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "AI-powered sales call intelligence — records, transcribes, and scores calls against your own frameworks.",
   "permissions": [
     "tabCapture",
@@ -9,7 +9,8 @@
     "activeTab",
     "scripting",
     "notifications",
-    "offscreen"
+    "offscreen",
+    "alarms"
   ],
   "host_permissions": [
     "http://localhost:8000/*",

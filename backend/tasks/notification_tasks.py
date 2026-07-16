@@ -9,11 +9,10 @@ It loads a persisted Analysis row and re-runs the email/Slack dispatch.
 
 from __future__ import annotations
 
-import asyncio
 import uuid
 
 from backend.config import settings
-from backend.tasks.celery_app import celery_app
+from backend.tasks.celery_app import celery_app, run_async
 from backend.utils.logging import logger
 
 
@@ -77,4 +76,4 @@ async def _resend(analysis_id: str) -> dict:
 @celery_app.task(name="notifications.resend", bind=True)
 def send_notifications_task(self, analysis_id: str) -> dict:
     logger.info("send_notifications_task job={} analysis={}", self.request.id, analysis_id)
-    return asyncio.run(_resend(analysis_id))
+    return run_async(_resend(analysis_id))

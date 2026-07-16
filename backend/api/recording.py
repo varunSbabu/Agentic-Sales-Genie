@@ -157,7 +157,7 @@ async def upload_chunk(
 
 
 @router.post("/stop", response_model=StopResponse)
-@limiter.limit("10/hour")
+@limiter.limit("40/hour")
 async def stop_recording(
     request: Request,
     body: StopRequest,

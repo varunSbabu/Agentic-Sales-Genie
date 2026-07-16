@@ -4,12 +4,13 @@
   window.SG_EXTRACTORS.meet = {
     name: "Google Meet",
     isInCall() {
-      // Meet shows call controls (mic/cam/leave) while in a call; the leave
-      // button is the most reliable marker.
-      return (
-        !!document.querySelector('[aria-label*="Leave call" i]') ||
-        !!document.querySelector('[data-call-ended]') ||
-        !!document.querySelector('[jsname][data-is-muted]')
+      // The Leave button exists ONLY during an active call, so it's the single
+      // reliable marker. The old code also matched [data-call-ended] and a broad
+      // [jsname][data-is-muted], which linger on the "You left the meeting" /
+      // lobby screens — that false-positive kept the call looking live forever,
+      // so it never auto-stopped. Match leave-call/leave-meeting only.
+      return !!document.querySelector(
+        '[aria-label*="Leave call" i], [aria-label*="Leave meeting" i], [aria-label*="Leave" i][role="button"]'
       );
     },
     meetingTitle() {

@@ -103,6 +103,30 @@ async function refreshKb() {
     $("s-kb-list").textContent = `Couldn't load KB: ${e.message}`;
   }
 }
+// Enable microphone: this options page has UI, so it can surface Chrome's mic
+// permission prompt. Granting it here persists mic access for the extension
+// origin, which lets the offscreen recorder capture the rep's voice silently.
+$("s-enable-mic").onclick = async () => {
+  setStatus("s-mic-status", "info", "requesting microphone access…");
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    stream.getTracks().forEach((t) => t.stop()); // we only needed the grant
+    await chrome.storage.local.set({ micUnavailable: false });
+    setStatus("s-mic-status", "ok", "✓ microphone enabled — your side of calls will now be recorded");
+  } catch (e) {
+    setStatus("s-mic-status", "err", `microphone blocked: ${e.name || e}. Allow it for this extension in Chrome, then retry.`);
+  }
+};
+
+// Dev auto-reload toggle (checked = enabled). Stored inverted as
+// devAutoReloadDisabled so the default (unset) means enabled.
+chrome.storage.local.get("devAutoReloadDisabled").then(({ devAutoReloadDisabled }) => {
+  $("s-auto-reload").checked = !devAutoReloadDisabled;
+});
+$("s-auto-reload").onchange = async () => {
+  await chrome.storage.local.set({ devAutoReloadDisabled: !$("s-auto-reload").checked });
+};
+
 $("s-kb-refresh").onclick = refreshKb;
 $("s-kb-upload").onclick = async () => {
   const f = $("s-kb-file").files[0];

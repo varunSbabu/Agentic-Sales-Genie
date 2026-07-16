@@ -84,3 +84,8 @@ if STATIC_DIR.exists():
     @app.get("/", include_in_schema=False)
     async def dev_console() -> FileResponse:
         return FileResponse(STATIC_DIR / "index.html")
+
+    # User-facing dashboard: call history, insights, knowledge base, settings.
+    @app.get("/dashboard", include_in_schema=False)
+    async def dashboard() -> FileResponse:
+        return FileResponse(STATIC_DIR / "dashboard.html")

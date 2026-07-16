@@ -24,7 +24,25 @@
         <label>Full name</label><input id="login-name" type="text" placeholder="Your name" />
       </div>
       <div class="field"><label>Email</label><input id="login-email" type="email" placeholder="you@example.com" /></div>
-      <div class="field"><label>Password</label><input id="login-password" type="password" placeholder="min 10 chars, 1 letter + 1 digit" /></div>
+      <div class="field"><label>Password</label>
+        <div class="pw-wrap">
+          <input id="login-password" type="password" placeholder="min 10 chars, 1 letter + 1 digit" />
+          <button type="button" class="pw-eye" data-target="login-password" aria-label="Show password"></button>
+        </div>
+      </div>
+      <ul class="pw-hint" id="pw-hint" style="display:none;">
+        <li id="pw-len"><span class="mark">○</span> At least 10 characters</li>
+        <li id="pw-letter"><span class="mark">○</span> Contains a letter</li>
+        <li id="pw-digit"><span class="mark">○</span> Contains a digit</li>
+      </ul>
+      <div class="field" id="confirm-field" style="display:none;">
+        <label>Re-enter password</label>
+        <div class="pw-wrap">
+          <input id="login-password2" type="password" placeholder="type it again" />
+          <button type="button" class="pw-eye" data-target="login-password2" aria-label="Show password"></button>
+        </div>
+        <div class="pw-match" id="pw-match"></div>
+      </div>
       <button id="btn-login">Log in</button>
       <div class="footer-link">
         <span id="auth-toggle-text">No account?</span>
@@ -93,7 +111,8 @@
       <h2>Recent calls</h2>
       <div id="idle-history"><p class="muted">Loading history…</p></div>
 
-      <div class="btn-row" style="margin-top:12px;">
+      <button id="btn-open-dashboard" style="margin-top:12px;">Open dashboard ↗</button>
+      <div class="btn-row" style="margin-top:8px;">
         <button class="secondary row" id="btn-open-settings">Settings</button>
         <button class="secondary row" id="btn-logout">Log out</button>
       </div>

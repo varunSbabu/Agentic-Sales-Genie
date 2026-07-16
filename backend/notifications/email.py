@@ -55,7 +55,7 @@ class AlertEmailPayload:
     # Full detail for the professional overview
     dimension_scores: list[dict] = field(default_factory=list)
     dimension_scores_count: int = 0
-    key_quotes: list[dict] = field(default_factory=list)
+    key_quotes: list = field(default_factory=list)  # str now; dict for legacy rows
 
     # Reasoning inputs
     strengths: list[str] = field(default_factory=list)
@@ -550,13 +550,19 @@ def _key_quotes_list(p: AlertEmailPayload) -> str:
         return ""
     items = ""
     for k in p.key_quotes[:4]:
-        sp = _e(k.get("speaker") or "?")
-        q = _e((k.get("quote") or "")[:180])
-        why = _e((k.get("why_notable") or "")[:120])
+        # key_quotes are plain strings now; tolerate the old {quote,speaker,...}
+        # object shape too, for analyses stored before the schema changed.
+        if isinstance(k, dict):
+            sp = _e(k.get("speaker") or "")
+            q = _e((k.get("quote") or "")[:180])
+            why = _e((k.get("why_notable") or "")[:120])
+        else:
+            sp, q, why = "", _e(str(k)[:180]), ""
+        sp_block = f'<div style="font-size:11px; color:#888; font-weight:600;">{sp}</div>' if sp else ""
         why_block = f'<div style="font-size:11px; color:#888;">— {why}</div>' if why else ""
         items += (
             f'<div style="border-left:3px solid #ccc; padding:6px 12px; margin:6px 0; background:#fafafa;">'
-            f'<div style="font-size:11px; color:#888; font-weight:600;">{sp}</div>'
+            f'{sp_block}'
             f'<div style="color:#333; font-style:italic;">"{q}"</div>'
             f'{why_block}</div>'
         )
