@@ -56,7 +56,7 @@ OUTPUT REQUIREMENTS:
     schedule demo Tuesday 2pm"). Empty string if no next step set.
   - next_step_owner: who owns the action (Rep | Prospect | Both | a named person).
   - call_summary_bullets: 3–5 factual one-line bullets summarising the call.
-  - key_quotes: 2–4 most notable verbatim transcript moments. For each: quote, speaker, why notable.
+  - key_quotes: a flat list of 2–4 most notable verbatim quote strings from the transcript.
 """
 
 SCORE_USER = """RETRIEVED FRAMEWORKS:
@@ -141,7 +141,7 @@ async def score_node(state: GenieState) -> dict:
             "loss_risk_categories": list(result.loss_risk_categories),
             # skimmable summaries
             "call_summary_bullets": list(result.call_summary_bullets),
-            "key_quotes": [k.model_dump() for k in result.key_quotes],
+            "key_quotes": list(result.key_quotes),
         }
     except Exception as exc:  # noqa: BLE001
         logger.exception("score failed: {}", exc)

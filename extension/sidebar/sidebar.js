@@ -10,6 +10,7 @@ const STATES = ["login", "onboarding", "idle", "detected", "recording", "process
 
 let backendUrl = "http://localhost:8000";
 let recTimer = null;
+let diagTimer = null;
 let recSeconds = 0;
 let currentDetected = null;
 let lastResult = null;
@@ -33,8 +34,7 @@ async function api(path, options = {}) {
   const ct = res.headers.get("content-type") || "";
   const data = ct.includes("application/json") ? await res.json() : await res.text();
   if (!res.ok) {
-    const detail = (data && data.detail) || data;
-    const err = new Error(typeof detail === "string" ? detail : JSON.stringify(detail));
+    const err = new Error(formatDetail(data && data.detail, typeof data === "string" ? data : `request failed (${res.status})`));
     err.status = res.status;
     throw err;
   }
@@ -132,11 +132,54 @@ function setAuthMode(mode) {
     ? "Register a new Sales Genie account."
     : "Log in to your Sales Genie account.";
   $("name-field").style.display = register ? "block" : "none";
+  // Password rules + confirm field only matter when creating an account.
+  $("pw-hint").style.display = register ? "block" : "none";
+  $("confirm-field").style.display = register ? "block" : "none";
   $("btn-login").textContent = register ? "Register" : "Log in";
   $("auth-toggle-text").textContent = register ? "Already have an account?" : "No account?";
   $("auth-toggle").textContent = register ? "Sign in" : "Create one";
+  if (register) refreshPwUi();
   clearStatus("login-status");
 }
+
+// Password rules mirror the backend (validators.py): ≥10 chars, ≥1 letter, ≥1 digit.
+function passwordChecks(pw) {
+  return { len: pw.length >= 10, letter: /[A-Za-z]/.test(pw), digit: /\d/.test(pw) };
+}
+function refreshPwUi() {
+  const pw = $("login-password").value;
+  const pw2 = $("login-password2").value;
+  const c = passwordChecks(pw);
+  const setRule = (id, ok) => {
+    const li = $(id);
+    li.classList.toggle("ok", ok);
+    li.querySelector(".mark").textContent = ok ? "✓" : "○";
+  };
+  setRule("pw-len", c.len);
+  setRule("pw-letter", c.letter);
+  setRule("pw-digit", c.digit);
+  const match = $("pw-match");
+  if (!pw2) { match.className = "pw-match"; match.textContent = ""; }
+  else if (pw === pw2) { match.className = "pw-match ok"; match.textContent = "✓ passwords match"; }
+  else { match.className = "pw-match err"; match.textContent = "passwords don't match"; }
+}
+$("login-password").addEventListener("input", () => { if (authMode === "register") refreshPwUi(); });
+$("login-password2").addEventListener("input", refreshPwUi);
+
+// Eye toggle: reveal / hide the password in each field.
+const EYE_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" d="M12 4.5C6.2 4.5 1.7 9.6.6 11.6a.9.9 0 0 0 0 .8C1.7 14.4 6.2 19.5 12 19.5s10.3-5.1 11.4-7.1a.9.9 0 0 0 0-.8C22.3 9.6 17.8 4.5 12 4.5Zm0 3.2a4.3 4.3 0 1 0 0 8.6 4.3 4.3 0 0 0 0-8.6Zm0 2.1a2.2 2.2 0 1 1 0 4.4 2.2 2.2 0 0 1 0-4.4Z"/></svg>';
+const EYE_OFF_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" d="M12 4.5C6.2 4.5 1.7 9.6.6 11.6a.9.9 0 0 0 0 .8C1.7 14.4 6.2 19.5 12 19.5s10.3-5.1 11.4-7.1a.9.9 0 0 0 0-.8C22.3 9.6 17.8 4.5 12 4.5Zm0 3.2a4.3 4.3 0 1 0 0 8.6 4.3 4.3 0 0 0 0-8.6Zm0 2.1a2.2 2.2 0 1 1 0 4.4 2.2 2.2 0 0 1 0-4.4Z"/><line x1="3.5" y1="3.5" x2="20.5" y2="20.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+document.querySelectorAll(".pw-eye").forEach((btn) => {
+  btn.innerHTML = EYE_SVG;
+  btn.onclick = () => {
+    const input = $(btn.dataset.target);
+    if (!input) return;
+    const reveal = input.type === "password";
+    input.type = reveal ? "text" : "password";
+    btn.innerHTML = reveal ? EYE_OFF_SVG : EYE_SVG;
+    btn.setAttribute("aria-label", reveal ? "Hide password" : "Show password");
+  };
+});
 
 $("auth-toggle").onclick = (e) => {
   e.preventDefault();
@@ -155,6 +198,16 @@ $("btn-login").onclick = async () => {
   if (isRegister) {
     const name = $("login-name").value.trim();
     if (!name) { setStatus("login-status", "warn", "enter your full name"); return; }
+    // Catch weak passwords + mismatches before the round-trip.
+    const c = passwordChecks(password);
+    if (!c.len || !c.letter || !c.digit) {
+      setStatus("login-status", "warn", "password needs 10+ characters with at least one letter and one digit");
+      return;
+    }
+    if (password !== $("login-password2").value) {
+      setStatus("login-status", "warn", "passwords don't match — re-enter to confirm");
+      return;
+    }
     body.full_name = name;
   }
   setStatus("login-status", "info", isRegister ? "creating account…" : "signing in…");
@@ -165,7 +218,7 @@ $("btn-login").onclick = async () => {
     });
     const data = await res.json();
     if (!res.ok) {
-      setStatus("login-status", "err", data.detail || (isRegister ? "registration failed" : "login failed"));
+      setStatus("login-status", "err", formatDetail(data.detail, isRegister ? "registration failed" : "login failed"));
       return;
     }
     await sw({ type: "SAVE_AUTH_TOKEN", token: data.access_token, refresh: data.refresh_token });
@@ -351,6 +404,18 @@ async function showIdle() {
 }
 $("btn-open-settings").onclick = () => chrome.runtime.openOptionsPage();
 $("btn-run-setup").onclick = () => showOnboarding();
+$("btn-open-dashboard").onclick = async () => {
+  // Hand the session to the dashboard via the URL fragment (never sent to the
+  // server), so it opens already signed in. Refresh token lets it stay in.
+  const { authToken, refreshToken } = await chrome.storage.local.get(["authToken", "refreshToken"]);
+  let url = `${backendUrl}/dashboard`;
+  if (authToken) {
+    const frag = new URLSearchParams({ token: authToken });
+    if (refreshToken) frag.set("refresh", refreshToken);
+    url += `#${frag.toString()}`;
+  }
+  chrome.tabs.create({ url });
+};
 $("btn-logout").onclick = async () => { currentUserId = null; await sw({ type: "CLEAR_AUTH" }); show("login"); };
 $("btn-detected-idle").onclick = showIdle;
 $("btn-results-idle").onclick = showIdle;
@@ -386,6 +451,15 @@ function resumeRecording(state) {
   updateTimer();
   if (recTimer) clearInterval(recTimer);
   recTimer = setInterval(() => { recSeconds++; updateTimer(); }, 1000);
+  // Poll the recorder's audio diagnostic (written by the offscreen doc a moment
+  // after start) so it reliably appears in the popup.
+  if (diagTimer) clearInterval(diagTimer);
+  const showDiag = () => chrome.storage.local.get(["micUnavailable", "sgAudioDiag"]).then(({ micUnavailable, sgAudioDiag }) => {
+    if (micUnavailable) setStatus("recording-status", "warn", "⚠ Mic off — only the other participant is recorded. Enable it in Settings → Microphone.");
+    else if (sgAudioDiag) setStatus("recording-status", "info", `audio: ${sgAudioDiag}`);
+  });
+  showDiag();
+  diagTimer = setInterval(showDiag, 1000);
 }
 function updateTimer() {
   const h = Math.floor(recSeconds / 3600);
@@ -396,13 +470,24 @@ function updateTimer() {
 
 $("btn-stop-recording").onclick = async () => {
   if (recTimer) clearInterval(recTimer);
+  if (diagTimer) clearInterval(diagTimer);
   setStatus("recording-status", "info", "stopping + uploading final audio…");
   const r = await sw({ type: "STOP_RECORDING", durationSecs: recSeconds });
-  if (!r.ok) {
-    setStatus("recording-status", "err", r.error || "stop failed");
+  if (r.ok) {
+    startProcessing(r);
     return;
   }
-  startProcessing(r);
+  // The recorder is stopped regardless (r.stopped) — never strand the user on a
+  // live-looking recording screen. Expired session → send them to log in again.
+  if (r.needsReauth) {
+    await sw({ type: "CLEAR_AUTH" });
+    show("login");
+    setStatus("login-status", "warn", "Session expired — recording stopped. Log in again to analyze it.");
+    return;
+  }
+  // Backend finalize failed but capture is stopped: surface the error, then the
+  // user can dismiss to idle. Timer is already cleared so nothing keeps running.
+  setStatus("recording-status", "err", r.error || "stop failed");
 };
 
 // ---------------------------------------------------------------------------
@@ -529,6 +614,19 @@ function showSaved(saveResult) {
 // ---------------------------------------------------------------------------
 function sleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
 function escapeHtml(s) { return String(s || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+// FastAPI returns validation errors as detail=[{loc, msg, ...}], and other
+// errors as detail="a string". Turn either shape into a readable message so the
+// UI never shows "[object Object]".
+function formatDetail(detail, fallback) {
+  if (!detail) return fallback;
+  if (typeof detail === "string") return detail;
+  if (Array.isArray(detail)) {
+    const msgs = detail.map((d) => (d && d.msg) ? d.msg : String(d)).filter(Boolean);
+    return msgs.length ? msgs.join("; ") : fallback;
+  }
+  if (typeof detail === "object" && detail.msg) return detail.msg;
+  return fallback;
+}
 function bandColor(band) {
   const b = (band || "").toUpperCase();
   if (b.includes("EXCELLENT")) return "#3fb950";

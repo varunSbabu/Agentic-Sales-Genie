@@ -45,7 +45,7 @@ class AnalysisPayload:
     ai_summary: str
     call_notes: str
     call_summary_bullets: list[str]
-    key_quotes: list[dict]
+    key_quotes: list  # str now; dict for legacy rows
     alert_level: str
 
     platform: str = "manual"

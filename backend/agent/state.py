@@ -147,9 +147,12 @@ class AnalysisOutput(BaseModel):
         default_factory=list,
         description="3–5 factual one-line bullets summarising what happened on the call.",
     )
-    key_quotes: list[KeyQuote] = Field(
+    # Plain strings, not objects: Llama tool-calling reliably emits quotes as a
+    # flat string array and Groq rejects the whole tool call (400 tool_use_failed)
+    # when the schema demands nested objects here. Strings are all the UI needs.
+    key_quotes: list[str] = Field(
         default_factory=list,
-        description="2–4 most notable verbatim quotes from the call with brief reason.",
+        description="2–4 most notable verbatim quote strings from the call.",
     )
 
 
@@ -213,7 +216,7 @@ class GenieState(TypedDict, total=False):
     buying_signals: list[dict]
     competitors_mentioned: list[dict]
     call_summary_bullets: list[str]
-    key_quotes: list[dict]
+    key_quotes: list[str]
 
     # Agent outputs — risk + next step --------------------------------------
     next_step_quality: str

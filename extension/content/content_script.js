@@ -60,6 +60,15 @@ function poll() {
     lastInCall = false;
     chrome.runtime.sendMessage({ type: "CALL_ENDED", platform: platform.name });
   }
+
+  // Heartbeat: while a call is live, ping the worker so it knows the meeting is
+  // still going. If the user leaves, closes the tab, or the page reloads, these
+  // pings stop and the worker's watchdog auto-stops any recording — so a
+  // recording can never outlive the meeting even if the "call ended" transition
+  // above is missed (e.g. the user navigated straight to a fresh page).
+  if (inCall) {
+    chrome.runtime.sendMessage({ type: "CALL_HEARTBEAT", platform: platform.name });
+  }
 }
 
 // Let the sidebar ask the content script directly for the current page state

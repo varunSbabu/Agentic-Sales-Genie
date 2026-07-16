@@ -9,13 +9,37 @@ Redis plays two roles here:
 
 from __future__ import annotations
 
+import asyncio
 import json
-from typing import Any
+from typing import Any, Awaitable, TypeVar
 
 import redis
 from celery import Celery
 
 from backend.config import settings
+
+_T = TypeVar("_T")
+
+
+def run_async(coro: Awaitable[_T]) -> _T:
+    """Run a coroutine to completion from a synchronous Celery task.
+
+    Celery tasks are synchronous, so each invocation spins up a fresh event
+    loop via asyncio.run. The shared async DB engine pools connections, and an
+    asyncpg connection is bound to the loop it was created on — so a connection
+    pooled by one task's loop blows up when reused on the next task's loop
+    ("got Future ... attached to a different loop"). Disposing the engine at the
+    end of every task guarantees the next task opens fresh connections on its
+    own loop.
+    """
+    async def _wrap() -> _T:
+        from backend.db.session import async_engine
+        try:
+            return await coro
+        finally:
+            await async_engine.dispose()
+
+    return asyncio.run(_wrap())
 
 celery_app = Celery(
     "sales_genie",
